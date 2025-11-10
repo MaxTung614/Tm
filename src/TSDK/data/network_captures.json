@@ -1,0 +1,2025 @@
+{
+  "captures": [
+
+
+    {
+      "timestamp": "2025-11-07T13:30:00",
+      "type": "html",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "page_info": {
+          "title": "天猫礼享金 - 兑换",
+          "description": "天猫礼享金 - 兑换",
+          "spm_id": "a212ne.25794986"
+        },
+        "platform_config": {
+          "is_local_dev": false,
+          "detected_device": "phone",
+          "in_app": false,
+          "is_ali_intranet": false,
+          "page_solution": "pegasus",
+          "render_type": "web-based-rax",
+          "use_es6": true
+        },
+        "system_info": {
+          "region_id": "CN",
+          "server_time": "2025-11-09T12:30:00+08:00"
+        },
+        "design_theme": {
+          "background_color": "#FFF5EE",
+          "floor_title_icon": "https://gw.alicdn.com/tfs/TB1X6f7dTtYBeNjy1XdXXXXyVXa-120-48.png"
+        },
+        "safe_area": {
+          "use_safe_area": true,
+          "css_variables": ["--safe-top", "--safe-bottom"]
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T13:45:00",
+      "type": "javascript",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "bundle_type": "webpack_runtime",
+        "core_functions": ["_defineProperty", "_extends", "_inherits", "_interopRequireDefault", "_interopRequireWildcard", "_possibleConstructorReturn", "_slicedToArray"],
+        "module_system": "CommonJS-like",
+        "features": {
+          "es6_support": true,
+          "module_loading": true,
+          "symbol_support": true
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T13:50:00",
+      "type": "javascript",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "bundle_type": "application_logic",
+        "core_functions": ["initStarLink", "setupHeaderRefresh", "beforeBaseRes", "afterBaseRes", "beforeLoad", "afterLoad"],
+        "browser_features": {
+          "user_agent_detection": true,
+          "event_listeners": true,
+          "dom_manipulation": true
+        },
+        "device_features": {
+          "chrome_android_detection": true,
+          "app_integration": true
+        },
+        "performance_optimizations": {
+          "pull_refresh_control": true,
+          "es6_support_detection": true,
+          "resource_loading": true
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T13:55:00",
+      "type": "javascript",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "bundle_type": "page_configuration",
+        "core_functions": ["__execCommand", "ES6_support_detection"],
+        "page_config": {
+          "title": "天猫礼享金 - 兑换",
+          "name": "天猫礼享金 - 兑换",
+          "spma": "a212ne",
+          "spmb": "25794986",
+          "pageId": 1511825,
+          "activityId": 81,
+          "path": "/tmall/user-growth/share-benefit-exchange",
+          "terminal": "mobile",
+          "theme": {
+            "backgroundColor": "#FFF5EE",
+            "floorTitleIcon": "https://gw.alicdn.com/tfs/TB1X6f7dTtYBeNjy1XdXXXXyVXa-120-48.png"
+          }
+        },
+        "performance_features": {
+          "useAsyncRender": false,
+          "lazyLoading": true,
+          "cssInjection": true
+        },
+        "es6_features": ["arrow_functions", "object_spread", "block_scoping", "async_functions"],
+        "security_measures": {
+          "offlineRedirect": true,
+          "beaconTracking": true
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:00:00",
+      "type": "module_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "component_configuration",
+        "components": ["pmod-data-controller-v3", "pmod-domagic-navibar"],
+        "api_endpoints": [
+          {
+            "name": "exchangeList",
+            "api": "mtop.fission.gift.share.vcoin.exchange.allpage",
+            "version": "1.0",
+            "needLogin": false,
+            "init": true,
+            "autoRefresh": true,
+            "desc": "兑换页面-淳磊-申灵"
+          },
+          {
+            "name": "exchange",
+            "api": "mtop.fission.gift.share.vcoin.exchange",
+            "version": "1.0",
+            "needLogin": true,
+            "init": false,
+            "autoRefresh": false,
+            "desc": "兑换接口-清骐-申灵"
+          },
+          {
+            "name": "exchangeCash",
+            "api": "mtop.fission.gift.share.vcoin.withdrawal.draw",
+            "version": "1.0",
+            "needLogin": true,
+            "init": false,
+            "autoRefresh": false,
+            "desc": "提现接口-淳磊-申灵"
+          }
+        ],
+        "ui_components": {
+          "navBar": {
+            "shareText": "我分享给你一个手机天猫的页面，快来看看吧",
+            "shareImage": "https://img.alicdn.com/tps/i3/TB18.tYMXXXXXXvXFXXh7Qm2pXX-750-750.png",
+            "statusBarStyle": "white",
+            "customZIndex": 99
+          }
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:05:00",
+      "type": "module_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "component_configuration",
+        "additional_components": [
+          {
+            "fullName": "@ali/pmod-need-login",
+            "name": "pmod-need-login",
+            "version": "0.0.5",
+            "componentId": 49749,
+            "componentVersionId": 583672,
+            "uuid": "4833283230"
+          },
+          {
+            "fullName": "@ali/pmod-css-injector",
+            "name": "pmod-css-injector",
+            "version": "0.0.2",
+            "componentId": 53757,
+            "componentVersionId": 577149,
+            "uuid": "8965706860"
+          },
+          {
+            "fullName": "@ali/pmod-zebra-mp-domagic",
+            "name": "pmod-zebra-mp-domagic",
+            "version": "5.12.20",
+            "componentId": 35467,
+            "componentVersionId": 593735,
+            "uuid": "1568604410",
+            "config": {
+              "view": {
+                "gmtModified": 1668742010314,
+                "gmtCreate": 1638183994486
+              },
+              "flow": {
+                "gmtModified": 1656473308684,
+                "gmtCreate": 1638172782872
+              }
+            }
+          }
+        ]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:10:00",
+      "type": "dsl_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "flow_configuration",
+        "modSpec": "1.0",
+        "flow_features": {
+          "init_data": true,
+          "data_listeners": ["exchangeList", "onExchange", "onExpandItems", "onShowRulePop", "onExchangeCash", "onLocate"],
+          "ui_interactions": ["confirmLayer", "showRuleLayer", "exchangeLayer"],
+          "api_operations": ["safeFetchExchangeList", "triggerExchange", "triggerExchangeCash"],
+          "notification_features": ["ali_toast", "common_wait", "ali_openUrl"],
+          "navigation_features": ["web_scrollIntoView", "web_locationSearch"]
+        },
+        "flow_description": "礼享金兑换页面完整业务流程，包含初始化数据加载、兑换确认、提现操作、规则弹窗展示等核心业务逻辑"
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:15:00",
+      "type": "view_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "ui_layout_configuration",
+        "view_version": "0",
+        "layout_type": "responsive_mobile",
+        "background_images": ["https://gw.alicdn.com/imgextra/i2/O1CN013fy1Qu1DKj92cLNlz_!!6000000000198-2-tps-750-586.png", "https://gw.alicdn.com/imgextra/i4/O1CN01oeYDP51OL9KD6Livg_!!6000000001688-2-tps-750-586.png"],
+        "ui_elements": {
+          "header": {
+            "title": "我的礼享金",
+            "icon": "https://gw.alicdn.com/imgextra/i3/O1CN01TB0uL91dE1Lx5tjBY_!!6000000003703-55-tps-36-37.svg"
+          },
+          "content_sections": ["itemModule", "phoneBillModule", "redPacketModule", "cashModule"],
+          "actions": ["@exchange", "@showRulePop", "@exchangeCash", "@expandItems", "@locate"]
+        },
+        "style_attributes": {
+          "background_color": "#FFF5EE",
+          "text_colors": {
+            "primary": "#FF2400",
+            "secondary": "#666666",
+            "tertiary": "#999999"
+          },
+          "button_colors": {
+            "primary": "#FFFFFF",
+            "secondary": "#FF0019"
+          }
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:20:00",
+      "type": "package_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "dependency_configuration",
+        "base_res_loading": {
+          "exec_command": "beforeBaseRes"
+        },
+        "package_registry": {
+          "debug_mode": true,
+          "group": "tm",
+          "modSpec": "1.0"
+        },
+        "packages": [
+          {
+            "name": "@ali/pcom-data-model-mtop",
+            "version": "2.2.1",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-data-model-mtop/2.2.1/"
+          },
+          {
+            "name": "@ali/pcom-domagic-expr",
+            "version": "1.0.8",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-domagic-expr/1.0.8/"
+          },
+          {
+            "name": "@ali/pcom-lib",
+            "version": "0.4.3",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-lib/0.4.3/"
+          },
+          {
+            "name": "@ali/pcom-mp-tracker",
+            "version": "0.0.14",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-mp-tracker/0.0.14/"
+          },
+          {
+            "name": "@ali/pcom-page-loader",
+            "version": "1.1.1",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-page-loader/1.1.1/"
+          },
+          {
+            "name": "@ali/pcom-share",
+            "version": "3.1.1",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-share/3.1.1/"
+          },
+          {
+            "name": "@ali/pcom-store",
+            "version": "0.2.7",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-store/0.2.7/"
+          },
+          {
+            "name": "@ali/pmod-data-controller-v3",
+            "version": "2.2.1",
+            "path": "//g.alicdn.com/code/npm/@ali/pmod-data-controller-v3/2.2.1/"
+          }
+        ]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:25:00",
+      "type": "package_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "dependency_configuration",
+        "package_registry": {
+          "debug_mode": true,
+          "group": "tm",
+          "modSpec": "1.0",
+          "ignorePackageNameInUri": true
+        },
+        "environment_packages": [
+          {
+            "name": "@ali/pnpm-uni--env@1",
+            "version": "1.0.6",
+            "path": "//g.alicdn.com/code/npm/@ali/pnpm-uni--env/1.0.6/",
+            "type": "environment"
+          }
+        ],
+        "rax_framework_packages": [
+          {
+            "name": "@ali/rax-pkg-rax",
+            "version": "1.2.2",
+            "path": "//g.alicdn.com/rax-pkg/rax/1.2.2/",
+            "type": "core"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-children",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-children/1.0.0/",
+            "type": "utility"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-clone-element",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-clone-element/1.0.0/",
+            "type": "utility"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-create-factory",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-create-factory/1.0.0/",
+            "type": "utility"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-image",
+            "version": "1.1.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-image/1.1.0/",
+            "type": "component"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-is-valid-element",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-is-valid-element/1.0.0/",
+            "type": "utility"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-picture",
+            "version": "1.1.7",
+            "path": "//g.alicdn.com/rax-pkg/rax-picture/1.1.7/",
+            "type": "component"
+          }
+        ]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:30:00",
+      "type": "package_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "dependency_configuration",
+        "package_registry": {
+          "debug_mode": true,
+          "group": "tm",
+          "modSpec": "1.0",
+          "ignorePackageNameInUri": true
+        },
+        "additional_ui_packages": [
+          {
+            "name": "@ali/rax-pkg-rax-text",
+            "version": "1.2.1",
+            "path": "//g.alicdn.com/rax-pkg/rax-text/1.2.1/",
+            "type": "component"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-view",
+            "version": "1.0.1",
+            "path": "//g.alicdn.com/rax-pkg/rax-view/1.0.1/",
+            "type": "component"
+          },
+          {
+            "name": "@ali/rax-pkg-universal-env",
+            "version": "3.3.3",
+            "path": "//g.alicdn.com/rax-pkg/universal-env/3.3.3/",
+            "type": "utility"
+          },
+          {
+            "name": "@ali/rax-pkg-universal-toast",
+            "version": "1.2.3",
+            "path": "//g.alicdn.com/rax-pkg/universal-toast/1.2.3/",
+            "type": "component"
+          }
+        ],
+        "core_framework_packages": [
+          {
+            "name": "@ali/universal-mtop@6",
+            "version": "6.5.2",
+            "path": "//g.alicdn.com/code/npm/@ali/universal-mtop/6.5.2/",
+            "type": "network"
+          },
+          {
+            "name": "@ali/universal-tracker@3",
+            "version": "3.0.7",
+            "path": "//g.alicdn.com/code/npm/@ali/universal-tracker/3.0.7/",
+            "type": "analytics"
+          },
+          {
+            "name": "@ali/universal-user@9",
+            "version": "9.1.0",
+            "path": "//g.alicdn.com/code/npm/@ali/universal-user/9.1.0/",
+            "type": "authentication"
+          }
+        ],
+        "business_packages": [
+          {
+            "name": "@ali/pcom-chaoshi-price",
+            "version": "0.1.1",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-chaoshi-price/0.1.1/",
+            "type": "business"
+          },
+          {
+            "name": "@ali/pcom-domagic-view",
+            "version": "0.6.17",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-domagic-view/0.6.17/",
+            "type": "business"
+          },
+          {
+            "name": "@ali/pcom-timer",
+            "version": "1.3.0",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-timer/1.3.0/",
+            "type": "business"
+          },
+          {
+            "name": "@ali/pcom-tracker-link",
+            "version": "0.3.15",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-tracker-link/0.3.15/",
+            "type": "business"
+          }
+        ]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:35:00",
+      "type": "package_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "dependency_configuration",
+        "package_registry": {
+          "debug_mode": true,
+          "group": "tm",
+          "modSpec": "1.0",
+          "ignorePackageNameInUri": true
+        },
+        "advanced_ui_components": [
+          {
+            "name": "@ali/pcom-videoplus",
+            "version": "0.2.17",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-videoplus/0.2.17/",
+            "type": "media"
+          },
+          {
+            "name": "@ali/pmod-domagic-navibar",
+            "version": "1.7.6",
+            "path": "//g.alicdn.com/code/npm/@ali/pmod-domagic-navibar/1.7.6/",
+            "type": "navigation"
+          }
+        ],
+        "rax_utility_packages": [
+          {
+            "name": "@ali/rax-pkg-rax-create-portal",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-create-portal/1.0.0/",
+            "type": "utility"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-find-dom-node",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-find-dom-node/1.0.0/",
+            "type": "utility"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-set-native-props",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-set-native-props/1.0.0/",
+            "type": "utility"
+          }
+        ],
+        "user_interface_components": [
+          {
+            "name": "@ali/rax-pkg-rax-image@2",
+            "version": "2.2.2",
+            "path": "//g.alicdn.com/rax-pkg/rax-image/2.2.2/",
+            "type": "component"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-link",
+            "version": "1.4.3",
+            "path": "//g.alicdn.com/rax-pkg/rax-link/1.4.3/",
+            "type": "navigation"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-refreshcontrol",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-refreshcontrol/1.0.0/",
+            "type": "interaction"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-scrollview",
+            "version": "2.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-scrollview/2.0.0/",
+            "type": "layout"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-text@2",
+            "version": "2.2.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-text/2.2.0/",
+            "type": "component"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-textinput",
+            "version": "1.1.2",
+            "path": "//g.alicdn.com/rax-pkg/rax-textinput/1.1.2/",
+            "type": "input"
+          }
+        ]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:40:00",
+      "type": "package_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "dependency_configuration",
+        "package_registry": {
+          "debug_mode": true,
+          "group": "tm",
+          "modSpec": "1.0",
+          "ignorePackageNameInUri": true
+        },
+        "rendering_utility_packages": [
+          {
+            "name": "@ali/rax-pkg-rax-unmount-component-at-node",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-unmount-component-at-node/1.0.0/",
+            "type": "utility"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-view@2",
+            "version": "2.0.3",
+            "path": "//g.alicdn.com/rax-pkg/rax-view/2.0.3/",
+            "type": "component"
+          },
+          {
+            "name": "@ali/rax-pkg-style-unit",
+            "version": "2.0.5",
+            "path": "//g.alicdn.com/rax-pkg/style-unit/2.0.5/",
+            "type": "utility"
+          }
+        ],
+        "navigation_transition_packages": [
+          {
+            "name": "@ali/rax-pkg-universal-navigate",
+            "version": "1.0.2",
+            "path": "//g.alicdn.com/rax-pkg/universal-navigate/1.0.2/",
+            "type": "navigation"
+          },
+          {
+            "name": "@ali/rax-pkg-universal-transition",
+            "version": "1.0.5",
+            "path": "//g.alicdn.com/rax-pkg/universal-transition/1.0.5/",
+            "type": "animation"
+          }
+        ],
+        "infrastructure_packages": [
+          {
+            "name": "@ali/universal-goldlog@9",
+            "version": "9.1.1",
+            "path": "//g.alicdn.com/code/npm/@ali/universal-goldlog/9.1.1/",
+            "type": "analytics"
+          },
+          {
+            "name": "@ali/universal-windvane@1",
+            "version": "1.3.0",
+            "path": "//g.alicdn.com/code/npm/@ali/universal-windvane/1.3.0/",
+            "type": "native_bridge"
+          },
+          {
+            "name": "@ali/pmod-need-login",
+            "version": "0.0.5",
+            "path": "//g.alicdn.com/pmod/need-login/0.0.5/",
+            "type": "authentication"
+          }
+        ]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:45:00",
+      "type": "package_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "dependency_configuration",
+        "package_registry": {
+          "debug_mode": true,
+          "group": "tm",
+          "modSpec": "1.0",
+          "ignorePackageNameInUri": true
+        },
+        "ui_enhancement_packages": [
+          {
+            "name": "@ali/pmod-css-injector",
+            "version": "0.0.2",
+            "path": "//g.alicdn.com/pmod/css-injector/0.0.2/",
+            "type": "styling"
+          },
+          {
+            "name": "@ali/pcom-appear",
+            "version": "0.0.8",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-appear/0.0.8/",
+            "type": "interaction"
+          }
+        ],
+        "business_framework_packages": [
+          {
+            "name": "@ali/pcom-domagic-flow",
+            "version": "0.1.15",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-domagic-flow/0.1.15/",
+            "type": "business_logic"
+          },
+          {
+            "name": "@ali/pmod-zebra-mp-domagic",
+            "version": "5.12.20",
+            "path": "//g.alicdn.com/pmod/zebra-mp-domagic/5.12.20/",
+            "type": "business_framework"
+          }
+        ],
+        "legacy_system_packages": [
+          {
+            "name": "@ali/universal-mtop@5",
+            "version": "5.2.2",
+            "path": "//g.alicdn.com/code/npm/@ali/universal-mtop/5.2.2/",
+            "type": "network"
+          },
+          {
+            "name": "@ali/universal-user@8",
+            "version": "8.2.4",
+            "path": "//g.alicdn.com/code/npm/@ali/universal-user/8.2.4/",
+            "type": "authentication"
+          }
+        ]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T14:50:00",
+      "type": "package_config",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "module_type": "dependency_configuration",
+        "package_registry": {
+          "debug_mode": true,
+          "group": "tm",
+          "modSpec": "1.0",
+          "ignorePackageNameInUri": true
+        },
+        "ui_framework_packages": [
+          {
+            "name": "@ali/pmod-domagic-layer",
+            "version": "0.1.0",
+            "path": "//g.alicdn.com/code/npm/@ali/pmod-domagic-layer/0.1.0/",
+            "type": "ui_layer"
+          },
+          {
+            "name": "@ali/psolution-tmall-mobile",
+            "version": "1.6.1",
+            "path": "//g.alicdn.com/psolution/tmall-mobile/1.6.1/",
+            "type": "solution_framework"
+          },
+          {
+            "name": "@ali/mui-feloader",
+            "version": "5.0.14",
+            "path": "//g.alicdn.com/mui/feloader/5.0.14/",
+            "type": "loading_component"
+          }
+        ],
+        "core_functionality_packages": [
+          {
+            "name": "@ali/pcom-driver",
+            "version": "1.1.4",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-driver/1.1.4/",
+            "type": "driver"
+          },
+          {
+            "name": "@ali/pcom-fetch",
+            "version": "2.0.9",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-fetch/2.0.9/",
+            "type": "network"
+          },
+          {
+            "name": "@ali/pcom-mp-render",
+            "version": "0.3.1",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-mp-render/0.3.1/",
+            "type": "renderer"
+          }
+        ],
+        "ui_interaction_packages": [
+          {
+            "name": "@ali/pcom-pull-to-refresh",
+            "version": "0.0.3",
+            "path": "//g.alicdn.com/code/npm/@ali/pcom-pull-to-refresh/0.0.3/",
+            "type": "interaction"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-proptypes",
+            "version": "1.0.0",
+            "path": "//g.alicdn.com/rax-pkg/rax-proptypes/1.0.0/",
+            "type": "utility"
+          },
+          {
+            "name": "@ali/rax-pkg-rax-recyclerview",
+            "version": "1.1.2",
+            "path": "//g.alicdn.com/rax-pkg/rax-recyclerview/1.1.2/",
+            "type": "layout"
+          }
+        ]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+    "timestamp": "2025-11-07T14:55:00",
+    "type": "module_dependencies",
+    "data": {
+      "module_dependency_graph": {
+        "@ali/pcom-driver/index": {
+          "requires": ["@ali/rax-pkg-universal-env/index"]
+        },
+        "@ali/pcom-driver/index-es6": {
+          "requires": ["@ali/rax-pkg-universal-env/index-es6"]
+        },
+        "@ali/pcom-driver/index-weex": {
+          "requires": ["@ali/rax-pkg-universal-env/index-weex"]
+        },
+        "@ali/pcom-mp-render/index": {
+          "requires": ["@ali/pcom-mp-tracker/index", "@ali/pcom-fetch/index", "@ali/pcom-lib/index", "@ali/rax-pkg-rax/index", "@ali/pcom-pull-to-refresh/index", "@ali/pcom-driver/index", "@ali/universal-mtop@5/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-rax-text@2/index", "@ali/pcom-tracker-link/index", "@ali/rax-pkg-rax-picture/index"]
+        },
+        "@ali/pcom-mp-render/index-es6": {
+          "requires": ["@ali/pcom-mp-tracker/index-es6", "@ali/pcom-fetch/index-es6", "@ali/pcom-lib/index-es6", "@ali/rax-pkg-rax/index-es6", "@ali/pcom-pull-to-refresh/index-es6", "@ali/pcom-driver/index-es6", "@ali/universal-mtop@5/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/rax-pkg-rax-text@2/index-es6", "@ali/pcom-tracker-link/index-es6", "@ali/rax-pkg-rax-picture/index-es6"]
+        },
+        "@ali/pcom-mp-render/index-weex": {
+          "requires": ["@ali/pcom-mp-tracker/index-weex", "@ali/pcom-fetch/index-weex", "@ali/pcom-lib/index-weex", "@ali/rax-pkg-rax/index-weex", "@ali/pcom-pull-to-refresh/index-weex", "@ali/pcom-driver/index-weex", "@ali/universal-mtop@5/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/rax-pkg-rax-text@2/index-weex", "@ali/pcom-tracker-link/index-weex", "@ali/rax-pkg-rax-picture/index-weex"]
+        },
+        "@ali/rax-pkg-rax-recyclerview/index": {
+          "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-rax-find-dom-node/index", "@ali/rax-pkg-rax-refreshcontrol/index", "@ali/rax-pkg-rax-scrollview/index", "@ali/rax-pkg-rax-children/index", "@ali/rax-pkg-rax-proptypes/index"]
+        },
+        "@ali/rax-pkg-rax-recyclerview/index-es6": {
+          "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/rax-pkg-rax-find-dom-node/index-es6", "@ali/rax-pkg-rax-refreshcontrol/index-es6", "@ali/rax-pkg-rax-scrollview/index-es6", "@ali/rax-pkg-rax-children/index-es6", "@ali/rax-pkg-rax-proptypes/index-es6"]
+        },
+        "@ali/rax-pkg-rax-recyclerview/index-weex": {
+          "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/rax-pkg-rax-find-dom-node/index-weex", "@ali/rax-pkg-rax-refreshcontrol/index-weex", "@ali/rax-pkg-rax-scrollview/index-weex", "@ali/rax-pkg-rax-children/index-weex", "@ali/rax-pkg-rax-proptypes/index-weex"]
+        },
+        "@ali/pcom-data-model-mtop/index": {
+          "requires": ["@ali/pcom-lib/index", "@ali/pcom-page-loader/index", "@ali/pcom-domagic-expr/index", "@ali/pcom-store/index"]
+        },
+        "@ali/pcom-data-model-mtop/index-es6": {
+          "requires": ["@ali/pcom-lib/index-es6", "@ali/pcom-page-loader/index-es6", "@ali/pcom-domagic-expr/index-es6", "@ali/pcom-store/index-es6"]
+        },
+        "@ali/pcom-data-model-mtop/index-weex": {
+          "requires": ["@ali/pcom-lib/index-weex", "@ali/pcom-page-loader/index-weex", "@ali/pcom-domagic-expr/index-weex", "@ali/pcom-store/index-weex"]
+        },
+        "@ali/pcom-lib/index": {
+          "requires": ["@ali/pcom-mp-tracker/index"]
+        },
+        "@ali/pcom-lib/index-es6": {
+          "requires": ["@ali/pcom-mp-tracker/index-es6"]
+        },
+        "@ali/pcom-lib/index-weex": {
+          "requires": ["@ali/pcom-mp-tracker/index-weex"]
+        },
+        "@ali/pmod-data-controller-v3/index": {
+          "requires": ["@ali/rax-pkg-rax/index", "@ali/pcom-store/index", "@ali/pcom-data-model-mtop/index"]
+        },
+        "@ali/pmod-data-controller-v3/index-es6": {
+          "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/pcom-store/index-es6", "@ali/pcom-data-model-mtop/index-es6"]
+        }
+      },
+      "environment_config": {
+        "runtime": "multi-platform",
+        "module_specification": "modSpec 1.0",
+        "build_mode": "debug"
+      },
+      "dependency_analysis": {
+        "total_modules": 17,
+        "module_types": ["driver", "render", "recyclerview", "data-model", "lib", "data-controller"],
+        "platform_variants": ["index", "index-es6", "index-weex"]
+      }
+    },
+    "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+  },
+    {
+    "type": "module_dependencies",
+    "data": {
+      "module_dependency_graph": {
+        "@ali/pcom-driver/index": {
+          "requires": ["@ali/rax-pkg-universal-env/index"]
+        },
+        "@ali/pcom-driver/index-es6": {
+          "requires": ["@ali/rax-pkg-universal-env/index-es6"]
+        },
+        "@ali/pcom-driver/index-weex": {
+          "requires": ["@ali/rax-pkg-universal-env/index-weex"]
+        },
+        "@ali/pcom-mp-render/index": {
+          "requires": ["@ali/pcom-mp-tracker/index", "@ali/pcom-fetch/index", "@ali/pcom-lib/index", "@ali/rax-pkg-rax/index", "@ali/pcom-pull-to-refresh/index", "@ali/pcom-driver/index", "@ali/universal-mtop@5/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-rax-text@2/index", "@ali/pcom-tracker-link/index", "@ali/rax-pkg-rax-picture/index"]
+        },
+        "@ali/pcom-mp-render/index-es6": {
+          "requires": ["@ali/pcom-mp-tracker/index-es6", "@ali/pcom-fetch/index-es6", "@ali/pcom-lib/index-es6", "@ali/rax-pkg-rax/index-es6", "@ali/pcom-pull-to-refresh/index-es6", "@ali/pcom-driver/index-es6", "@ali/universal-mtop@5/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/rax-pkg-rax-text@2/index-es6", "@ali/pcom-tracker-link/index-es6", "@ali/rax-pkg-rax-picture/index-es6"]
+        },
+        "@ali/pcom-mp-render/index-weex": {
+          "requires": ["@ali/pcom-mp-tracker/index-weex", "@ali/pcom-fetch/index-weex", "@ali/pcom-lib/index-weex", "@ali/rax-pkg-rax/index-weex", "@ali/pcom-pull-to-refresh/index-weex", "@ali/pcom-driver/index-weex", "@ali/universal-mtop@5/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/rax-pkg-rax-text@2/index-weex", "@ali/pcom-tracker-link/index-weex", "@ali/rax-pkg-rax-picture/index-weex"]
+        },
+        "@ali/rax-pkg-rax-recyclerview/index": {
+          "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-rax-find-dom-node/index", "@ali/rax-pkg-rax-refreshcontrol/index", "@ali/rax-pkg-rax-scrollview/index", "@ali/rax-pkg-rax-children/index", "@ali/rax-pkg-rax-proptypes/index"]
+        },
+        "@ali/rax-pkg-rax-recyclerview/index-es6": {
+          "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/rax-pkg-rax-find-dom-node/index-es6", "@ali/rax-pkg-rax-refreshcontrol/index-es6", "@ali/rax-pkg-rax-scrollview/index-es6", "@ali/rax-pkg-rax-children/index-es6", "@ali/rax-pkg-rax-proptypes/index-es6"]
+        },
+        "@ali/rax-pkg-rax-recyclerview/index-weex": {
+          "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/rax-pkg-rax-find-dom-node/index-weex", "@ali/rax-pkg-rax-refreshcontrol/index-weex", "@ali/rax-pkg-rax-scrollview/index-weex", "@ali/rax-pkg-rax-children/index-weex", "@ali/rax-pkg-rax-proptypes/index-weex"]
+        },
+        "@ali/pcom-data-model-mtop/index": {
+          "requires": ["@ali/pcom-lib/index", "@ali/pcom-page-loader/index", "@ali/pcom-domagic-expr/index", "@ali/pcom-store/index"]
+        },
+        "@ali/pcom-data-model-mtop/index-es6": {
+          "requires": ["@ali/pcom-lib/index-es6", "@ali/pcom-page-loader/index-es6", "@ali/pcom-domagic-expr/index-es6", "@ali/pcom-store/index-es6"]
+        },
+        "@ali/pcom-data-model-mtop/index-weex": {
+          "requires": ["@ali/pcom-lib/index-weex", "@ali/pcom-page-loader/index-weex", "@ali/pcom-domagic-expr/index-weex", "@ali/pcom-store/index-weex"]
+        },
+        "@ali/pcom-lib/index": {
+          "requires": ["@ali/pcom-mp-tracker/index"]
+        },
+        "@ali/pcom-lib/index-es6": {
+          "requires": ["@ali/pcom-mp-tracker/index-es6"]
+        },
+        "@ali/pcom-lib/index-weex": {
+          "requires": ["@ali/pcom-mp-tracker/index-weex"]
+        },
+        "@ali/pmod-data-controller-v3/index": {
+          "requires": ["@ali/rax-pkg-rax/index", "@ali/pcom-store/index", "@ali/pcom-data-model-mtop/index"]
+        },
+        "@ali/pmod-data-controller-v3/index-es6": {
+          "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/pcom-store/index-es6", "@ali/pcom-data-model-mtop/index-es6"]
+        }
+      },
+      "environment_config": {
+        "runtime": "multi-platform",
+        "module_specification": "modSpec 1.0",
+        "build_mode": "debug"
+      },
+      "dependency_analysis": {
+        "total_modules": 17,
+        "module_types": ["driver", "render", "recyclerview", "data-model", "lib", "data-controller"],
+        "platform_variants": ["index", "index-es6", "index-weex"]
+      }
+    },
+    "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+  },
+    {
+      "type": "module_dependencies",
+      "data": {
+        "module_dependency_graph": {
+          "@ali/pcom-driver/index": {
+            "requires": ["@ali/rax-pkg-universal-env/index"]
+          },
+          "@ali/pcom-driver/index-es6": {
+            "requires": ["@ali/rax-pkg-universal-env/index-es6"]
+          },
+          "@ali/pcom-driver/index-weex": {
+            "requires": ["@ali/rax-pkg-universal-env/index-weex"]
+          },
+          "@ali/pcom-mp-render/index": {
+            "requires": ["@ali/pcom-mp-tracker/index", "@ali/pcom-fetch/index", "@ali/pcom-lib/index", "@ali/rax-pkg-rax/index", "@ali/pcom-pull-to-refresh/index", "@ali/pcom-driver/index", "@ali/universal-mtop@5/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-rax-text@2/index", "@ali/pcom-tracker-link/index", "@ali/rax-pkg-rax-picture/index"]
+          },
+          "@ali/pcom-mp-render/index-es6": {
+            "requires": ["@ali/pcom-mp-tracker/index-es6", "@ali/pcom-fetch/index-es6", "@ali/pcom-lib/index-es6", "@ali/rax-pkg-rax/index-es6", "@ali/pcom-pull-to-refresh/index-es6", "@ali/pcom-driver/index-es6", "@ali/universal-mtop@5/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/rax-pkg-rax-text@2/index-es6", "@ali/pcom-tracker-link/index-es6", "@ali/rax-pkg-rax-picture/index-es6"]
+          },
+          "@ali/pcom-mp-render/index-weex": {
+            "requires": ["@ali/pcom-mp-tracker/index-weex", "@ali/pcom-fetch/index-weex", "@ali/pcom-lib/index-weex", "@ali/rax-pkg-rax/index-weex", "@ali/pcom-pull-to-refresh/index-weex", "@ali/pcom-driver/index-weex", "@ali/universal-mtop@5/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/rax-pkg-rax-text@2/index-weex", "@ali/pcom-tracker-link/index-weex", "@ali/rax-pkg-rax-picture/index-weex"]
+          },
+          "@ali/rax-pkg-rax-recyclerview/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-rax-find-dom-node/index", "@ali/rax-pkg-rax-refreshcontrol/index", "@ali/rax-pkg-rax-scrollview/index", "@ali/rax-pkg-rax-children/index", "@ali/rax-pkg-rax-proptypes/index"]
+          },
+          "@ali/rax-pkg-rax-recyclerview/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/rax-pkg-rax-find-dom-node/index-es6", "@ali/rax-pkg-rax-refreshcontrol/index-es6", "@ali/rax-pkg-rax-scrollview/index-es6", "@ali/rax-pkg-rax-children/index-es6", "@ali/rax-pkg-rax-proptypes/index-es6"]
+          },
+          "@ali/rax-pkg-rax-recyclerview/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/rax-pkg-rax-find-dom-node/index-weex", "@ali/rax-pkg-rax-refreshcontrol/index-weex", "@ali/rax-pkg-rax-scrollview/index-weex", "@ali/rax-pkg-rax-children/index-weex", "@ali/rax-pkg-rax-proptypes/index-weex"]
+          },
+          "@ali/pcom-data-model-mtop/index": {
+            "requires": ["@ali/pcom-lib/index", "@ali/pcom-page-loader/index", "@ali/pcom-domagic-expr/index", "@ali/pcom-store/index"]
+          },
+          "@ali/pcom-data-model-mtop/index-es6": {
+            "requires": ["@ali/pcom-lib/index-es6", "@ali/pcom-page-loader/index-es6", "@ali/pcom-domagic-expr/index-es6", "@ali/pcom-store/index-es6"]
+          },
+          "@ali/pcom-data-model-mtop/index-weex": {
+            "requires": ["@ali/pcom-lib/index-weex", "@ali/pcom-page-loader/index-weex", "@ali/pcom-domagic-expr/index-weex", "@ali/pcom-store/index-weex"]
+          },
+          "@ali/pcom-lib/index": {
+            "requires": ["@ali/pcom-mp-tracker/index"]
+          },
+          "@ali/pcom-lib/index-es6": {
+            "requires": ["@ali/pcom-mp-tracker/index-es6"]
+          },
+          "@ali/pcom-lib/index-weex": {
+            "requires": ["@ali/pcom-mp-tracker/index-weex"]
+          },
+          "@ali/pmod-data-controller-v3/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/pcom-store/index", "@ali/pcom-data-model-mtop/index"]
+          },
+          "@ali/pmod-data-controller-v3/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/pcom-store/index-es6", "@ali/pcom-data-model-mtop/index-es6"]
+          }
+        },
+        "environment_config": {
+          "runtime": "multi-platform",
+          "module_specification": "modSpec 1.0",
+          "build_mode": "debug"
+        },
+        "dependency_analysis": {
+          "total_modules": 17,
+          "module_types": ["driver", "render", "recyclerview", "data-model", "lib", "data-controller"],
+          "platform_variants": ["index", "index-es6", "index-weex"]
+        }      },      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"    },    {
+      "timestamp": "2025-11-07T15:00:00",
+      "type": "module_dependencies",
+      "data": {
+        "module_dependency_graph": {
+          "@ali/pmod-data-controller-v3/index-pc": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/pcom-store/index", "@ali/pcom-data-model-mtop/index"]
+          },
+          "@ali/pmod-data-controller-v3/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/pcom-store/index-weex", "@ali/pcom-data-model-mtop/index-weex"]
+          },
+          "@ali/pmod-domagic-navibar/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-universal-env/index", "@ali/pcom-store/index", "@ali/pcom-lib/index", "@ali/pcom-mp-tracker/index", "@ali/pcom-domagic-view/index", "@ali/pcom-domagic-expr/index"]
+          },
+          "@ali/pmod-domagic-navibar/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/pcom-store/index-es6", "@ali/pcom-lib/index-es6", "@ali/pcom-mp-tracker/index-es6", "@ali/pcom-domagic-view/index-es6", "@ali/pcom-domagic-expr/index-es6"]
+          },
+          "@ali/pmod-domagic-navibar/index-pc": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-universal-env/index", "@ali/pcom-store/index", "@ali/pcom-lib/index", "@ali/pcom-mp-tracker/index", "@ali/pcom-domagic-view/index", "@ali/pcom-domagic-expr/index"]
+          },
+          "@ali/pmod-domagic-navibar/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/rax-pkg-universal-env/index-weex", "@ali/pcom-store/index-weex", "@ali/pcom-lib/index-weex", "@ali/pcom-mp-tracker/index-weex", "@ali/pcom-domagic-view/index-weex", "@ali/pcom-domagic-expr/index-weex"]
+          },
+          "@ali/universal-mtop@6/index": {
+            "requires": ["@ali/rax-pkg-universal-env/index", "@ali/universal-tracker@3/index"]
+          },
+          "@ali/universal-mtop@6/index-es6": {
+            "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/universal-tracker@3/index-es6"]
+          },
+          "@ali/universal-mtop@6/index-weex": {
+            "requires": ["@ali/rax-pkg-universal-env/index-weex", "@ali/universal-tracker@3/index-weex"]
+          },
+          "@ali/pmod-need-login/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/universal-user@9/index", "@ali/rax-pkg-rax-text/index"]
+          },
+          "@ali/pmod-need-login/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/universal-user@9/index-es6", "@ali/rax-pkg-rax-text/index-es6"]
+          },
+          "@ali/pmod-need-login/index-pc": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-text/index"]
+          },
+          "@ali/pmod-need-login/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/universal-user@9/index-weex", "@ali/rax-pkg-rax-text/index-weex"]
+          },
+          "@ali/universal-user@9/index": {
+            "requires": ["@ali/rax-pkg-universal-env/index", "@ali/universal-mtop@6/index"]
+          },
+          "@ali/universal-user@9/index-es6": {
+            "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/universal-mtop@6/index-es6"]
+          },
+          "@ali/universal-user@9/index-weex": {
+            "requires": ["@ali/rax-pkg-universal-env/index-weex", "@ali/universal-mtop@6/index-weex"]
+          },
+          "@ali/pmod-css-injector/index": {
+            "requires": ["@ali/rax-pkg-rax/index"]
+          }
+        },
+        "environment_config": {
+          "runtime": "multi-platform",
+          "module_specification": "modSpec 1.0",
+          "build_mode": "debug"
+        },
+        "dependency_analysis": {
+          "total_modules": 17,
+          "module_types": ["data-controller", "navibar", "mtop", "need-login", "user", "css-injector"],
+          "platform_variants": ["index", "index-es6", "index-pc", "index-weex"]
+        }      },      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"    },    {
+      "timestamp": "2025-11-07T15:05:00",
+      "type": "module_dependencies",
+      "data": {
+        "module_dependency_graph": {
+          "@ali/pmod-css-injector/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6"]
+          },
+          "@ali/pmod-css-injector/index-pc": {
+            "requires": ["@ali/rax-pkg-rax/index"]
+          },
+          "@ali/pmod-css-injector/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex"]
+          },
+          "@ali/pcom-chaoshi-price/index": {
+            "requires": ["@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-image@2/index", "@ali/rax-pkg-rax-view@2/index", "@ali/rax-pkg-rax/index"]
+          },
+          "@ali/pcom-chaoshi-price/index-es6": {
+            "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-image@2/index-es6", "@ali/rax-pkg-rax-view@2/index-es6", "@ali/rax-pkg-rax/index-es6"]
+          },
+          "@ali/pcom-domagic-view/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-text@2/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-rax-create-portal/index", "@ali/pcom-timer/index", "@ali/pcom-tracker-link/index", "@ali/pcom-chaoshi-price/index"]
+          },
+          "@ali/pcom-domagic-view/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-text@2/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/rax-pkg-rax-create-portal/index-es6", "@ali/pcom-timer/index-es6", "@ali/pcom-tracker-link/index-es6", "@ali/pcom-chaoshi-price/index-es6"]
+          },
+          "@ali/pcom-domagic-view/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax-text@2/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/rax-pkg-rax-create-portal/index-weex", "@ali/pcom-timer/index-weex", "@ali/pcom-tracker-link/index-weex", "@ali/pcom-chaoshi-price/index-weex"]
+          }
+        },
+        "environment_config": {
+          "runtime": "multi-platform",
+          "module_specification": "modSpec 1.0",
+          "build_mode": "debug"
+        },
+        "dependency_analysis": {
+          "total_modules": 9,
+          "module_types": ["css-injector", "chaoshi-price", "domagic-view"],
+          "platform_variants": ["index", "index-es6", "index-pc", "index-weex"]
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T15:10:00",
+      "type": "module_dependencies",
+      "data": {
+        "module_dependency_graph": {
+          "@ali/pcom-videoplus/index": {
+            "requires": ["@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-view/index", "@ali/universal-windvane@1/index", "@ali/rax-pkg-rax-picture/index", "@ali/rax-pkg-rax-find-dom-node/index", "@ali/rax-pkg-rax-set-native-props/index", "@ali/rax-pkg-universal-transition/index"]
+          },
+          "@ali/pcom-videoplus/index-es6": {
+            "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/universal-windvane@1/index-es6", "@ali/rax-pkg-rax-picture/index-es6", "@ali/rax-pkg-rax-find-dom-node/index-es6", "@ali/rax-pkg-rax-set-native-props/index-es6", "@ali/rax-pkg-universal-transition/index-es6"]
+          },
+          "@ali/pcom-videoplus/index-weex": {
+            "requires": ["@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/universal-windvane@1/index-weex", "@ali/rax-pkg-rax-picture/index-weex", "@ali/rax-pkg-rax-find-dom-node/index-weex", "@ali/rax-pkg-rax-set-native-props/index-weex", "@ali/rax-pkg-universal-transition/index-weex"]
+          },
+          "@ali/pmod-zebra-mp-domagic/index": {
+            "requires": ["@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-create-portal/index", "@ali/pcom-store/index", "@ali/pcom-domagic-view/index", "@ali/pcom-domagic-expr/index", "@ali/pcom-domagic-flow/index", "@ali/rax-pkg-rax-view/index", "@ali/pcom-mp-tracker/index", "@ali/pcom-lib/index", "@ali/rax-pkg-rax-textinput/index", "@ali/rax-pkg-rax-scrollview/index"]
+          },
+          "@ali/pmod-zebra-mp-domagic/index-es6": {
+            "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-rax-create-portal/index-es6", "@ali/pcom-store/index-es6", "@ali/pcom-domagic-view/index-es6", "@ali/pcom-domagic-expr/index-es6", "@ali/pcom-domagic-flow/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/pcom-mp-tracker/index-es6", "@ali/pcom-lib/index-es6", "@ali/rax-pkg-rax-textinput/index-es6", "@ali/rax-pkg-rax-scrollview/index-es6"]
+          },
+          "@ali/pmod-zebra-mp-domagic/index-pc": {
+            "requires": ["@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-create-portal/index", "@ali/pcom-store/index", "@ali/pcom-domagic-view/index", "@ali/pcom-domagic-expr/index", "@ali/pcom-domagic-flow/index", "@ali/rax-pkg-rax-view/index", "@ali/pcom-mp-tracker/index", "@ali/pcom-lib/index", "@ali/rax-pkg-rax-textinput/index", "@ali/pkg-rax-scrollview/index"]
+          },
+          "@ali/pmod-zebra-mp-domagic/index-weex": {
+            "requires": ["@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-rax-create-portal/index-weex", "@ali/pcom-store/index-weex", "@ali/pcom-domagic-view/index-weex", "@ali/pcom-domagic-expr/index-weex", "@ali/pcom-domagic-flow/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/pcom-mp-tracker/index-weex", "@ali/pcom-lib/index-weex", "@ali/rax-pkg-rax-textinput/index-weex", "@ali/rax-pkg-rax-scrollview/index-weex"]
+          },
+          "@ali/rax-pkg-rax-create-portal/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-unmount-component-at-node/index"]
+          },
+          "@ali/rax-pkg-rax-create-portal/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-rax-unmount-component-at-node/index-es6"]
+          },
+          "@ali/rax-pkg-rax-create-portal/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-rax-unmount-component-at-node/index-weex"]
+          },
+          "@ali/rax-pkg-rax-image@2/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index"]
+          },
+          "@ali/rax-pkg-rax-image@2/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6"]
+          },
+          "@ali/rax-pkg-rax-image@2/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex"]
+          },
+          "@ali/rax-pkg-rax-text@2/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-text@2/index.css"]
+          }
+        },
+        "environment_config": {
+          "runtime": "multi-platform",
+          "module_specification": "modSpec 1.0",
+          "build_mode": "debug"
+        },
+        "dependency_analysis": {
+          "total_modules": 14,
+          "module_types": ["videoplus", "zebra-mp-domagic", "rax-create-portal", "rax-image@2", "rax-text@2"],
+          "platform_variants": ["index", "index-es6", "index-pc", "index-weex"]
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T15:15:00",
+      "type": "module_dependencies",
+      "data": {
+        "module_dependency_graph": {
+          "@ali/rax-pkg-rax-text@2/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-text@2/index-es6.css"]
+          },
+          "@ali/rax-pkg-rax-text@2/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex"]
+          },
+          "@ali/rax-pkg-rax-unmount-component-at-node/index": {
+            "requires": ["@ali/rax-pkg-rax/index"]
+          },
+          "@ali/rax-pkg-rax-unmount-component-at-node/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6"]
+          },
+          "@ali/rax-pkg-rax-unmount-component-at-node/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex"]
+          },
+          "@ali/rax-pkg-rax-view@2/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-view@2/index.css"]
+          },
+          "@ali/rax-pkg-rax-view@2/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-view@2/index-es6.css"]
+          },
+          "@ali/rax-pkg-rax-view@2/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex"]
+          },
+          "@ali/pcom-store/index": {
+            "requires": ["@ali/rax-pkg-rax/index"]
+          },
+          "@ali/pcom-store/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6"]
+          },
+          "@ali/pcom-store/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex"]
+          },
+          "@ali/pcom-tracker-link/index": {
+            "requires": ["@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-link/index", "@ali/rax-pkg-rax-view/index"]
+          },
+          "@ali/pcom-tracker-link/index-es6": {
+            "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-rax-link/index-es6", "@ali/rax-pkg-rax-view/index-es6"]
+          },
+          "@ali/pcom-tracker-link/index-weex": {
+            "requires": ["@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-rax-link/index-weex", "@ali/rax-pkg-rax-view/index-weex"]
+          },
+          "@ali/pmod-domagic-layer/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-view/index", "@ali/pcom-store/index", "@ali/pcom-domagic-view/index", "@ali/rax-pkg-rax-text/index", "@ali/pcom-tracker-link/index", "@ali/rax-pkg-rax-textinput/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-scrollview/index", "@ali/pcom-lib/index"]
+          },
+          "@ali/pmod-domagic-layer/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/pcom-store/index-es6", "@ali/pcom-domagic-view/index-es6", "@ali/rax-pkg-rax-text/index-es6", "@ali/pcom-tracker-link/index-es6", "@ali/rax-pkg-rax-textinput/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-scrollview/index-es6", "@ali/pcom-lib/index-es6"]
+          },
+          "@ali/pmod-domagic-layer/index-pc": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-view/index", "@ali/pcom-store/index", "@ali/pcom-domagic-view/index", "@ali/rax-pkg-rax-text/index", "@ali/pcom-tracker-link/index", "@ali/rax-pkg-rax-textinput/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-scrollview/index", "@ali/pcom-lib/index"]
+          },
+          "@ali/pmod-domagic-layer/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-rax-view/index-weex", "@ali/pcom-store/index-weex", "@ali/pcom-domagic-view/index-weex", "@ali/rax-pkg-rax-text/index-weex", "@ali/pcom-tracker-link/index-weex", "@ali/rax-pkg-rax-textinput/index-weex", "@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax-scrollview/index-weex", "@ali/pcom-lib/index-weex"]
+          },
+          "@ali/rax-pkg-rax-children/index": {
+            "requires": ["@ali/rax-pkg-rax/index"]
+          }
+        },
+        "environment_config": {
+          "runtime": "multi-platform",
+          "module_specification": "modSpec 1.0",
+          "build_mode": "debug"
+        },
+        "dependency_analysis": {
+          "total_modules": 19,
+          "module_types": ["rax-text@2", "rax-unmount-component-at-node", "rax-view@2", "pcom-store", "pcom-tracker-link", "pmod-domagic-layer", "rax-children"],
+          "platform_variants": ["index", "index-es6", "index-pc", "index-weex"]
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T15:20:00",
+      "type": "module_dependencies",
+      "data": {
+        "module_dependency_graph": {
+          "@ali/rax-pkg-rax-children/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6"]
+          },
+          "@ali/rax-pkg-rax-children/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex"]
+          },
+          "@ali/rax-pkg-rax-clone-element/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-is-valid-element/index"]
+          },
+          "@ali/rax-pkg-rax-clone-element/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-rax-is-valid-element/index-es6"]
+          },
+          "@ali/rax-pkg-rax-clone-element/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-rax-is-valid-element/index-weex"]
+          },
+          "@ali/rax-pkg-rax-create-factory/index": {
+            "requires": ["@ali/rax-pkg-rax/index"]
+          },
+          "@ali/rax-pkg-rax-create-factory/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6"]
+          },
+          "@ali/rax-pkg-rax-create-factory/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex"]
+          },
+          "@ali/rax-pkg-rax-find-dom-node/index": {
+            "requires": ["@ali/rax-pkg-rax/index"]
+          },
+          "@ali/rax-pkg-rax-find-dom-node/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6"]
+          },
+          "@ali/rax-pkg-rax-find-dom-node/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex"]
+          },
+          "@ali/rax-pkg-rax-image/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index"]
+          },
+          "@ali/rax-pkg-rax-image/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6"]
+          },
+          "@ali/rax-pkg-rax-image/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex"]
+          },
+          "@ali/rax-pkg-rax-link/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index"]
+          },
+          "@ali/rax-pkg-rax-link/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6"]
+          },
+          "@ali/rax-pkg-rax-link/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex"]
+          },
+          "@ali/rax-pkg-rax-picture/index": {
+            "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-rax-view/index", "@ali/rax-pkg-rax-image/index"]
+          },
+          "@ali/rax-pkg-rax-picture/index-es6": {
+            "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-rax-view/index-es6", "@ali/rax-pkg-rax-image/index-es6"]
+          },
+          "@ali/rax-pkg-rax-picture/index-weex": {
+            "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-rax-image/index-weex"]
+          }
+        },
+        "environment_config": {
+          "runtime": "multi-platform",
+          "module_specification": "modSpec 1.0",
+          "build_mode": "debug"
+        },
+        "dependency_analysis": {
+          "total_modules": 20,
+          "module_types": ["rax-children", "rax-clone-element", "rax-create-factory", "rax-find-dom-node", "rax-image", "rax-link", "rax-picture"],
+          "platform_variants": ["index", "index-es6", "index-weex"]
+        }
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T15:25:00",
+      "type": "module_dependencies",
+      "module_dependency_graph": {
+        "@ali/rax-pkg-rax-refreshcontrol/index": {
+          "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index"]
+        },
+        "@ali/rax-pkg-rax-refreshcontrol/index-es6": {
+          "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6"]
+        },
+        "@ali/rax-pkg-rax-refreshcontrol/index-weex": {
+          "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex"]
+        },
+        "@ali/rax-pkg-rax-scrollview/index": {
+          "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-refreshcontrol/index", "@ali/rax-pkg-rax-find-dom-node/index"]
+        },
+        "@ali/rax-pkg-rax-scrollview/index-es6": {
+          "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-refreshcontrol/index-es6", "@ali/rax-pkg-rax-find-dom-node/index-es6"]
+        },
+        "@ali/rax-pkg-rax-scrollview/index-weex": {
+          "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax-refreshcontrol/index-weex", "@ali/rax-pkg-rax-find-dom-node/index-weex"]
+        },
+        "@ali/rax-pkg-rax-set-native-props/index": {
+          "requires": ["@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-style-unit/index", "@ali/rax-pkg-rax/index"]
+        },
+        "@ali/rax-pkg-rax-set-native-props/index-es6": {
+          "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-style-unit/index-es6", "@ali/rax-pkg-rax/index-es6"]
+        },
+        "@ali/rax-pkg-rax-set-native-props/index-weex": {
+          "requires": ["@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-style-unit/index-weex", "@ali/rax-pkg-rax/index-weex"]
+        },
+        "@ali/rax-pkg-rax-text/index": {
+          "requires": ["@ali/rax-pkg-rax/index"]
+        },
+        "@ali/rax-pkg-rax-text/index-es6": {
+          "requires": ["@ali/rax-pkg-rax/index-es6"]
+        },
+        "@ali/rax-pkg-rax-text/index-weex": {
+          "requires": ["@ali/rax-pkg-rax/index-weex"]
+        },
+        "@ali/rax-pkg-rax-textinput/index": {
+          "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-rax-set-native-props/index"]
+        },
+        "@ali/rax-pkg-rax-textinput/index-es6": {
+          "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-rax-set-native-props/index-es6"]
+        },
+        "@ali/rax-pkg-rax-textinput/index-weex": {
+          "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-rax-set-native-props/index-weex"]
+        }
+      },
+      "environment_config": {
+        "runtime": "multi-platform",
+        "module_specification": "modSpec 1.0",
+        "build_mode": "debug"
+      },
+      "dependency_analysis": {
+        "total_modules": 15,
+        "module_types": ["rax-refreshcontrol", "rax-scrollview", "rax-set-native-props", "rax-text", "rax-textinput"],
+        "platform_variants": ["index", "index-es6", "index-weex"]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T15:30:00",
+      "type": "module_dependencies",
+      "module_dependency_graph": {
+        "@ali/rax-pkg-rax-view/index": {
+          "requires": ["@ali/rax-pkg-rax/index", "@ali/rax-pkg-universal-env/index"]
+        },
+        "@ali/rax-pkg-rax-view/index-es6": {
+          "requires": ["@ali/rax-pkg-rax/index-es6", "@ali/rax-pkg-universal-env/index-es6"]
+        },
+        "@ali/rax-pkg-rax-view/index-weex": {
+          "requires": ["@ali/rax-pkg-rax/index-weex", "@ali/rax-pkg-universal-env/index-weex"]
+        },
+        "@ali/rax-pkg-universal-env/index": {
+          "requires": ["@ali/pnpm-uni--env@1/index"]
+        },
+        "@ali/rax-pkg-universal-env/index-es6": {
+          "requires": ["@ali/pnpm-uni--env@1/index-es6"]
+        },
+        "@ali/rax-pkg-universal-env/index-weex": {
+          "requires": ["@ali/pnpm-uni--env@1/index-weex"]
+        },
+        "@ali/rax-pkg-universal-navigate/index": {
+          "requires": ["@ali/rax-pkg-universal-env/index"]
+        },
+        "@ali/rax-pkg-universal-navigate/index-es6": {
+          "requires": ["@ali/rax-pkg-universal-env/index-es6"]
+        },
+        "@ali/rax-pkg-universal-navigate/index-weex": {
+          "requires": ["@ali/rax-pkg-universal-env/index-weex"]
+        },
+        "@ali/rax-pkg-universal-toast/index": {
+          "requires": ["@ali/rax-pkg-universal-env/index"]
+        },
+        "@ali/rax-pkg-universal-toast/index-es6": {
+          "requires": ["@ali/rax-pkg-universal-env/index-es6"]
+        },
+        "@ali/rax-pkg-universal-toast/index-weex": {
+          "requires": ["@ali/rax-pkg-universal-env/index-weex"]
+        },
+        "@ali/rax-pkg-universal-transition/index": {
+          "requires": ["@ali/rax-pkg-universal-env/index", "@ali/rax-pkg-style-unit/index"]
+        },
+        "@ali/rax-pkg-universal-transition/index-es6": {
+          "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/rax-pkg-style-unit/index-es6"]
+        },
+        "@ali/rax-pkg-universal-transition/index-weex": {
+          "requires": ["@ali/rax-pkg-universal-env/index-weex", "@ali/rax-pkg-style-unit/index-weex"]
+        },
+        "@ali/universal-goldlog@9/index": {
+          "requires": ["@ali/universal-tracker@3/index"]
+        },
+        "@ali/universal-goldlog@9/index-es6": {
+          "requires": ["@ali/universal-tracker@3/index-es6"]
+        },
+        "@ali/universal-goldlog@9/index-weex": {
+          "requires": ["@ali/universal-tracker@3/index-weex"]
+        },
+        "@ali/universal-mtop@5/index": {
+          "requires": ["@ali/rax-pkg-universal-env/index", "@ali/universal-tracker@3/index"]
+        },
+        "@ali/universal-mtop@5/index-es6": {
+          "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/universal-tracker@3/index-es6"]
+        },
+        "@ali/universal-mtop@5/index-weex": {
+          "requires": ["@ali/rax-pkg-universal-env/index-weex", "@ali/universal-tracker@3/index-weex"]
+        },
+        "@ali/universal-user@8/index": {
+          "requires": ["@ali/rax-pkg-universal-env/index", "@ali/universal-mtop@5/index"]
+        },
+        "@ali/universal-user@8/index-es6": {
+          "requires": ["@ali/rax-pkg-universal-env/index-es6", "@ali/universal-mtop@5/index-es6"]
+        },
+        "@ali/universal-user@8/index-weex": {
+          "requires": ["@ali/rax-pkg-universal-env/index-weex", "@ali/universal-mtop@5/index-weex"]
+        },
+        "@ali/universal-windvane@1/index": {
+          "requires": ["@ali/rax-pkg-universal-env/index"]
+        },
+        "@ali/universal-windvane@1/index-es6": {
+          "requires": ["@ali/rax-pkg-universal-env/index-es6"]
+        }
+      },
+      "environment_config": {
+        "runtime": "multi-platform",
+        "module_specification": "modSpec 1.0",
+        "build_mode": "debug"
+      },
+      "dependency_analysis": {
+        "total_modules": 26,
+        "module_types": ["rax-view", "universal-env", "universal-navigate", "universal-toast", "universal-transition", "universal-goldlog", "universal-mtop", "universal-user", "universal-windvane"],
+        "platform_variants": ["index", "index-es6", "index-weex"]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-07T15:35:00",
+      "type": "module_dependencies",
+      "module_dependency_graph": {
+        "@ali/universal-windvane@1/index-weex": {
+          "requires": ["@ali/rax-pkg-universal-env/index-weex"]
+        }
+      },
+      "cdn_loaded_modules": [
+        "@ali/pcom-mp-tracker/0.0.14",
+        "@ali/pcom-fetch/2.0.9",
+        "@ali/pcom-lib/0.4.3",
+        "rax-pkg/rax/1.2.2",
+        "@ali/pcom-pull-to-refresh/0.0.3",
+        "@ali/pnpm-uni--env/1.0.6",
+        "rax-pkg/universal-env/3.3.3",
+        "@ali/pcom-driver/1.1.4",
+        "@ali/universal-tracker/3.0.7",
+        "@ali/universal-mtop/5.2.2",
+        "rax-pkg/rax-view/1.0.1",
+        "rax-pkg/rax-text/2.2.0",
+        "rax-pkg/rax-link/1.4.3",
+        "@ali/pcom-tracker-link/0.3.15",
+        "rax-pkg/rax-image/1.1.0",
+        "rax-pkg/rax-picture/1.1.7",
+        "@ali/pcom-mp-render/0.3.1",
+        "@ali/pcom-store/0.2.7",
+        "@ali/pcom-page-loader/1.1.1",
+        "@ali/pcom-domagic-expr/1.0.8",
+        "@ali/pcom-data-model-mtop/2.2.1",
+        "@ali/pmod-data-controller-v3/2.2.1",
+        "rax-pkg/rax-unmount-component-at-node/1.0.0",
+        "rax-pkg/rax-create-portal/1.0.0",
+        "@ali/pcom-timer/1.3.0",
+        "rax-pkg/rax-image/2.2.2",
+        "rax-pkg/rax-view/2.0.3",
+        "@ali/pcom-chaoshi-price/0.1.1",
+        "@ali/pcom-domagic-view/0.6.17",
+        "@ali/pmod-domagic-navibar/1.7.6",
+        "@ali/universal-mtop/6.5.2",
+        "@ali/universal-user/9.1.0",
+        "rax-pkg/rax-text/1.2.1",
+        "pmod/need-login/0.0.5",
+        "pmod/css-injector/0.0.2",
+        "@ali/pcom-domagic-flow/0.1.15",
+        "rax-pkg/style-unit/2.0.5",
+        "rax-pkg/rax-set-native-props/1.0.0",
+        "rax-pkg/rax-textinput/1.1.2",
+        "rax-pkg/rax-refreshcontrol/1.0.0",
+        "rax-pkg/rax-find-dom-node/1.0.0",
+        "rax-pkg/rax-scrollview/2.0.0",
+        "pmod/zebra-mp-domagic/5.12.20",
+        "@ali/pmod-domagic-layer/0.1.0"
+      ],
+      "script_loading_info": {
+        "combine": true,
+        "crossorigin": true,
+        "bundle_count": 2
+      },
+      "environment_config": {
+        "runtime": "multi-platform",
+        "module_specification": "modSpec 1.0",
+        "build_mode": "debug"
+      },
+      "dependency_analysis": {
+        "total_modules": 46,
+        "module_types": ["universal-windvane", "pcom-mp-tracker", "pcom-fetch", "pcom-lib", "rax", "pcom-pull-to-refresh", "pnpm-uni--env", "universal-env", "pcom-driver", "universal-tracker", "universal-mtop", "rax-view", "rax-text", "rax-link", "pcom-tracker-link", "rax-image", "rax-picture", "pcom-mp-render", "pcom-store", "pcom-page-loader", "pcom-domagic-expr", "pcom-data-model-mtop", "pmod-data-controller-v3", "pcom-timer", "pcom-chaoshi-price", "pcom-domagic-view", "pmod-domagic-navibar", "universal-user", "pmod-need-login", "pmod-css-injector", "pcom-domagic-flow", "style-unit", "rax-set-native-props", "rax-textinput", "rax-refreshcontrol", "rax-find-dom-node", "rax-scrollview", "pmod-zebra-mp-domagic", "pmod-domagic-layer"],
+        "platform_variants": ["index-es6", "index-weex"]
+      },
+      "url": "https://h5api.m.tmall.com/tmall/gift/exchange"
+    },
+    {
+      "timestamp": "2025-11-09T04:38:55",
+      "type": "http_headers",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "request": {
+          "url": "https://pages.tmall.com/wow/an/tmall/user-growth/share-benefit-exchange",
+          "method": "GET",
+          "headers": {
+            ":authority": "pages.tmall.com",
+            ":method": "GET",
+            ":path": "/wow/an/tmall/user-growth/share-benefit-exchange",
+            ":scheme": "https",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9",
+            "cache-control": "max-age=0",
+            "priority": "u=0, i",
+            "referer": "https://pages.tmall.com/wow/an/tmall/user-growth/share-benefit-exchange",
+            "sec-ch-ua": "\"Microsoft Edge\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "document",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-site": "same-origin",
+            "sec-fetch-user": "?1",
+            "upgrade-insecure-requests": "1",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+          }
+        },
+        "response": {
+          "status_code": 200,
+          "status_text": "OK",
+          "remote_address": "127.0.0.1:65072",
+          "headers": {
+            "ali-swift-global-savetime": "1762663135",
+            "cache-control": "max-age=0, s-maxage=135",
+            "content-encoding": "gzip",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Sun, 09 Nov 2025 04:38:55 GMT",
+            "eagleeye-traceid": "b7f0531617626631351845272e",
+            "eagleid": "b7f0531617626631351845272e",
+            "s-brt": "191",
+            "s-rt": "194",
+            "server": "Tengine",
+            "streaming-parser": "open",
+            "strict-transport-security": "max-age=31536000",
+            "timing-allow-origin": "*",
+            "ups-target-key": "air-ual.vipserver",
+            "vary": "Accept-Encoding",
+            "via": "ens-cache22.l2cn7764[389,389,200-0,M], ens-cache58.l2cn7764[390,0], ens-cache14.cn8298[502,501,200-0,M], ens-cache2.cn8298[506,0]",
+            "x-accept-terminal": "pc",
+            "x-air-hostname": "air-ual033103064089.center.na620",
+            "x-air-pt": "pt0",
+            "x-air-pt-source": "cna",
+            "x-air-pt-value": "OyRKHjK/czoCAZpA4ymqCmSo",
+            "x-air-ptx": "100",
+            "x-air-source": "proxy",
+            "x-air-trace-id": "b7f0531617626631351845272e",
+            "x-cache": "MISS TCP_MISS dirn:-2:-2",
+            "x-content-type": "text/html; charset=utf-8",
+            "x-eagleeye-id": "b7f0531617626631351845272e",
+            "x-node": "561706aade497438477a1ffb4155da8a",
+            "x-protocol": "HTTP/1.1",
+            "x-readtime": "189",
+            "x-retcode": "SUCCESS",
+            "x-retmsg": "ok",
+            "x-server-id": "28c3d6b2523ca52c32ad72931842b19a7e0b178a6d34e40eb632e6d62e93d44a66d7bc0eaed84f7d",
+            "x-swift-cachetime": "135",
+            "x-swift-savetime": "Sun, 09 Nov 2025 04:38:55 GMT",
+            "x-via": "cn8298.l1, ens-cache14.cn8298, l2cn7764.l2, ens-cache22.l2cn7764, wormholesource033044227094.center.na620",
+            "x-xss-protection": "1; mode=block"
+          }
+        },
+        "security_info": {
+          "referrer_policy": "strict-origin-when-cross-origin",
+          "strict_transport_security": true,
+          "xss_protection": true
+        },
+        "performance_info": {
+          "response_time": 194,
+          "backend_time": 189,
+          "cache_status": "MISS"
+        }
+      },
+      "url": "https://pages.tmall.com/wow/an/tmall/user-growth/share-benefit-exchange"
+    },
+    {
+      "timestamp": "2025-11-09T04:39:00",
+      "type": "api_response",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "api": "mtop.fission.gift.share.vcoin.exchange.allpage",
+        "data": {
+          "accountTips": "提现至支付宝:208******0501",
+          "drawAsacCode": "A2A1C15ZV3XMFH7OSTQMZ5",
+          "itemModule": {
+            "items": [
+              {
+                "btnText": "0.5礼享金兑换",
+                "buttonTips": "立即兑换",
+                "gitCoinAmount": "0.5",
+                "goodsPrice": "3.8",
+                "itemId": "777155634115",
+                "itemPic": "https://img.alicdn.com/imgextra/i3/3376137149/O1CN01jm9yY1yz2g1PoLz8q_!!0-item_pic.jpg",
+                "itemTitle": "type-c数据线",
+                "itemUrl": "https://item.taobao.com/item.htm?id=777155634115",
+                "order": 2,
+                "promotionPrice": "3",
+                "status": "AVAILABLE",
+                "whiteBgPictureUrl": "https://img.alicdn.com/imgextra/i1/3376137149/O1CN01OEShMuJ22gTQ51PZRr_!!2-item_pic.png"
+              },
+              {
+                "btnText": "3礼享金兑换",
+                "buttonTips": "立即兑换",
+                "gitCoinAmount": "3",
+                "goodsPrice": "5.01",
+                "itemId": "775325947418",
+                "itemPic": "https://img.alicdn.com/imgextra/i4/220734488858/O1CN01L7HOHo02DFhEAPui9_!!0-item_pic.jpg",
+                "itemTitle": "商品标题",
+                "itemUrl": "https://item.taobao.com/item.htm?id=775325947418",
+                "order": 1,
+                "promotionPrice": "5.01",
+                "status": "AVAILABLE",
+                "whiteBgPictureUrl": "https://img.alicdn.com/imgextra/i4/220734488858/O1CN01L7HOHo02DFhEAPui9_!!0-item_pic.jpg"
+              }
+            ]
+          },
+          "withdrawalModule": {
+            "drawAmount": "5000",
+            "hasDraw": true,
+            "tips": "余额不足"
+          }
+        },
+        "performance_info": {
+          "response_time": 22,
+          "request_start_time": "0.001",
+          "request_end_time": "0.023"
+        },
+        "api_info": {
+          "version": "1.0",
+          "needLogin": false,
+          "method": "GET",
+          "domain": "h5api.m.tmall.com"
+        }
+      },
+      "url": "https://h5api.m.tmall.com/h5/mtop.fission.gift.share.vcoin.exchange.allpage/1.0/?dataType=json&type=jsonp&callback=mtopjsonp2"
+    },
+    {
+      "timestamp": "2025-11-09T04:38:56",
+      "type": "http_headers",
+      "source": "tmall_h5",
+      "request": {
+        "method": "GET",
+        "url": "https://h5api.m.tmall.com/h5/mtop.fission.gift.share.vcoin.exchange.allpage/1.0/?jsv=2.6.1&appKey=12574478&t=1762663136296&sign=478769243eccb5ecbf64cf2db933d480&api=mtop.fission.gift.share.vcoin.exchange.allpage&v=1.0&timeout=4096&needRetry=true&type=jsonp&dataType=jsonp&callback=mtopjsonp2&data=%7B%7D",
+        "headers": {
+          ":authority": "h5api.m.tmall.com",
+          ":method": "GET",
+          ":path": "/h5/mtop.fission.gift.share.vcoin.exchange.allpage/1.0/?jsv=2.6.1&appKey=12574478&t=1762663136296&sign=478769243eccb5ecbf64cf2db933d480&api=mtop.fission.gift.share.vcoin.exchange.allpage&v=1.0&timeout=4096&needRetry=true&type=jsonp&dataType=jsonp&callback=mtopjsonp2&data=%7B%7D",
+          ":scheme": "https",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "accept-language": "zh-CN,zh;q=0.9",
+          "cookie": "cna=OyRKHjK/czoCAZpA4ymqCmSo; miid=4550939911339478128; lid=maxtung614; wk_cookie2=15027f31a7bf832bc76dea3369423503; wk_unb=UUpgQhGm5YfLgoB5qg%3D%3D; _slk_skip_tbpass_=true; dnk=maxtung614; tracknick=maxtung614; lgc=maxtung614; cookie2=181348444fca4d660231760bc5d2b0cf; cancelledSubSites=empty; t=380f6105d3f8da2947fc03cb04b7a326; sn=; _tb_token_=e58e31d94eea4; havana_sdkSilent=1761740484105; uc1=cookie21; uc3=nk2; uc4=id4; login=true; sgcookie=E100PGdcrqOHSxU5FrUUTspGPA%2FSd7pSiNCf0azf4%2BN72zZiU998YKZe5jt6%2BPkdUbDI3XeuMlKCSa4nUjmpOLNrEbJNp20hlPg8bgfZMOGfGzQ%3D; csg=bff783bb; xlly_s=1; mtop_partitioned_detect=1; _m_h5_tk=c42ef826975173674dedca2a4d15fe35_1762670501441; _m_h5_tk_enc=34254781c5fc2d8836e3d8f35b2f1aa1; isg=BCEhHQOG7OA1LUAFZh9C2lYeMO07zpXARDxiRIP25CiG6kG8yx8AkI9rTF5JIi34; tfstk=gJTKJ0b4rAD3JC2U9LmiqueAk6hiocAe_pRbrTX3Vdp9aLpHx9A5NUpkCajSLwYJBI9aK9ieZdCWILQlrw1hFzdRBpfl-yf7wOOyEXSoTFIJndxHqHXkWzQeSH4lKv7JNKb-nx0moBRF0aMmnYsn6ub5N4XSjMMFs6QInx0mSBRFzaMDtaEJnC1PC6aCFyGO5s1VPzaBFOs1Gs2CPa9S6O1Ag8aQPgN11O55PT95PfQ1Q_Q5FL_S6CMbakBz4TaJY9rNfsng8yzeW6IdezXTyT8_oMBjxOa7P9CdvldCBzaWW3eOIVXI05XP-98R9Lu48wsJ0QfJp2UBeI8wB19jyrXB_IxcYeiuoiQhpgYBeYER9nvpU9OQdk1AJ9IXRGPYuCIWXFQHRYr2sCBCDNxibvjlJpKV3MiZQLdOKLTdfJHGEnAMRGpjIPpP2nRlwp3LRKsz6EYAjZycH_qI6fEz4M1aoHwDikXfsf5OnfAg4uSic1Bm6fEz4M1N6tcGIurPjm1..",
+          "referer": "https://pages.tmall.com/",
+          "sec-ch-ua": "\"Microsoft Edge\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Windows\"",
+          "sec-fetch-dest": "script",
+          "sec-fetch-mode": "no-cors",
+          "sec-fetch-site": "same-site",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+        }
+      },
+      "response": {
+        "status": 200,
+        "status_text": "OK",
+        "remote_address": "127.0.0.1:65072",
+        "headers": {
+          "cache-control": "no-cache",
+          "content-encoding": "gzip",
+          "content-type": "application/json;charset=UTF-8",
+          "date": "Sun, 09 Nov 2025 04:38:56 GMT",
+          "eagleeye-traceid": "2147873d17626631366836889e1776",
+          "mtop-x-provider": "5754f7a1d3dd8c567a9efdb1d1450594912a9d3ae941f7c6449497e1dff78adb76668b79e3c05dda165a4d847775c0a4",
+          "pragma": "no-cache",
+          "s-brt": "217",
+          "s-cunit": "0",
+          "s-rt": "222",
+          "s_group": "tao-session",
+          "s_ip": "4547514b636666666861774a534d553d",
+          "s_read_unit": "[CN:CENTER]",
+          "s_status": "STATUS_NORMAL",
+          "s_tag": "283674001571840|134217728^0|^taoMainUser:2214191126140:^taoMainUser#45106365017915392|0",
+          "s_tid": "2147873d17626631366836889e1776",
+          "s_ucode": "CN:CENTER",
+          "s_v": "4.0.25.1",
+          "strict-transport-security": "max-age=0",
+          "ups-target-key": "mtop.uncenter.fc-fission-platform",
+          "vary": "Accept-Encoding",
+          "x-eagleeye-id": "2147873d17626631366836889e1776",
+          "x-node": "d8317975c5abd3f89cc01379fe88ada8",
+          "x-powered-by": "m.taobao.com"
+        }
+      },
+      "security_info": {
+        "referrer_policy": "strict-origin-when-cross-origin"
+      },
+      "performance_info": {
+        "response_time": 222,
+        "backend_time": 217,
+        "cache_status": "MISS"
+      }
+    },
+    {
+      "timestamp": "2025-11-09T04:38:57",
+      "type": "api_response",
+      "source": "tmall_h5",
+      "extracted_parameters": {
+        "api": "mtop.fission.gift.share.vcoin.exchange.allpage",
+        "data": {
+          "accountTips": "提现至支付宝:208****0501",
+          "drawAsacCode": "2A21C15ZV3XMFHZOSTQMZS",
+          "itemModule": {
+            "items": [
+              {
+                "btnText": "0.5礼享金兑换",
+                "buttonTips": "立即兑换",
+                "gitCoinAmount": "0.5",
+                "goodsPrice": "3.8",
+                "itemId": 777155634115,
+                "itemPic": "https://img.alicdn.com/imgextra/i3/3376137149/O1CN01jm9yIy22gIPobLz8q_!!0-item_pic.jpg",
+                "itemTitle": "typec数据线",
+                "itemUrl": "https://item.taobao.com/item.htm?id=777155634115",
+                "order": 2,
+                "promotionPrice": "3",
+                "status": "AVAILABLE",
+                "whiteBgPictureUrl": "https://img.alicdn.com/imgextra/i1/3376137149/O1CN01OESMWu22gIQ51PZRR_!!2-item_pic.png"
+              },
+              {
+                "btnText": "3礼享金兑换",
+                "buttonTips": "立即兑换",
+                "gitCoinAmount": "3",
+                "goodsPrice": "5.01",
+                "itemId": 775325947418,
+                "itemPic": "https://img.alicdn.com/imgextra/i4/2207344888580/O1CN01L7HOHo2DFhEAPui9G_!!0-item_pic.jpg",
+                "itemTitle": "手机支架",
+                "itemUrl": "https://item.taobao.com/item.htm?id=775325947418",
+                "order": 7,
+                "promotionPrice": "4.95",
+                "status": "AVAILABLE",
+                "whiteBgPictureUrl": "https://img.alicdn.com/imgextra/O1CN01cGaMNP2AH7elexemR_!!6000000008177-2-yinhe.png"
+              },
+              {
+                "btnText": "2礼享金兑换",
+                "buttonTips": "立即兑换",
+                "gitCoinAmount": "2",
+                "goodsPrice": "12.9",
+                "itemId": 783465638673,
+                "itemPic": "https://img.alicdn.com/imgextra/i2/2213998432928/O1CN01jkAhy21XV4ecJwBKh_!!0-item_pic.jpg",
+                "itemTitle": "国风蒸汽眼罩30片",
+                "itemUrl": "https://item.taobao.com/item.htm?id=783465638673",
+                "order": 11,
+                "promotionPrice": "9.9",
+                "status": "AVAILABLE"
+              },
+              {
+                "btnText": "2礼享金兑换",
+                "buttonTips": "立即兑换",
+                "gitCoinAmount": "2",
+                "goodsPrice": "12.9",
+                "itemId": 783530225667,
+                "itemPic": "https://img.alicdn.com/imgextra/i1/2213998432928/O1CN01mZwIzb1XV4czsgNi6_!!0-item_pic.jpg",
+                "itemTitle": "花漾蒸汽眼罩30片",
+                "itemUrl": "https://item.taobao.com/item.htm?id=783530225667",
+                "order": 12,
+                "promotionPrice": "9.9",
+                "status": "AVAILABLE",
+                "whiteBgPictureUrl": "https://img.alicdn.com/imgextra/O1CN01kvBTlj1M6NYDRaXFg_!!6000000001385-2-yinhe.png"
+              }
+            ]
+          },
+          "materials": [
+            {
+              "notice": "邀请超30天未用天猫的好友，得惊喜红包"
+            },
+            {
+              "notice": "邀请新用户至少得3元！",
+              "skipUrl": ""
+            }
+          ],
+          "withdrawalModule": {
+            "hasWithdrawal": true,
+            "tipIcon": "//gw.alicdn.com/tfs/TB168c6XQyWBuNjy0FpXXassXXa-16-16.png",
+            "tipText": "可提现至支付宝账户",
+            "totalAmount": "877.1",
+            "withdrawalAccount": "支付宝账户",
+            "termDTOList": [
+              {
+                "buttonTips": "立即兑换",
+                "cashOutTips": "1礼享金可提",
+                "cashOutValue": "1",
+                "id": "34884001",
+                "limitTips": "连续分享6天可提"
+              },
+              {
+                "buttonTips": "立即兑换",
+                "cashOutTips": "3礼享金可提",
+                "cashOutValue": "3",
+                "id": "35591002",
+                "limitTips": "当日邀请3位新用户可提"
+              },
+              {
+                "buttonTips": "立即兑换",
+                "cashOutTips": "5礼享金可提",
+                "cashOutValue": "5",
+                "id": "35591001",
+                "limitTips": "当日邀请4位新用户可提"
+              }
+            ]
+          },
+          "phoneBillModule": {
+            "redAsacCode": "2A21B24LA1SI0HB0EEVN03",
+            "redPackets": [
+              {
+                "amount": "3",
+                "benefitCode": "f3013829d7dc4d59b460d5d1b85ac3d1",
+                "btnText": "3礼享金兑换",
+                "buttonTips": "立即兑换",
+                "cent": 300,
+                "coinAmount": "3",
+                "desc": "实物通用",
+                "status": "AVAILABLE",
+                "subDesc": "满30可用",
+                "title": "3元话费券"
+              }
+            ]
+          },
+          "redAsacCode": "2A21B24LA1SI0HB0EEVN03",
+          "redPacketModule": {
+            "redAsacCode": "2A21B24LA1SI0HB0EEVN03",
+            "redPackets": [
+              {
+                "amount": "800",
+                "benefitCode": "4a7c9e8c194046de951c87ac3187e325",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 80000,
+                "coinAmount": "800",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满801可用",
+                "title": "800元红包"
+              },
+              {
+                "amount": "500",
+                "benefitCode": "2713305bd3794de5aede654a29a095c5",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 50000,
+                "coinAmount": "500",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满1000可用",
+                "title": "500元红包"
+              },
+              {
+                "amount": "400",
+                "benefitCode": "a81f95d722754c2dab43c4b2ed6af2f8",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 40000,
+                "coinAmount": "400",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满800可用",
+                "title": "400元红包"
+              },
+              {
+                "amount": "200",
+                "benefitCode": "6481479dd84f44d79d6673e1549bb77a",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 20000,
+                "coinAmount": "200",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满400可用",
+                "title": "200元红包"
+              },
+              {
+                "amount": "100",
+                "benefitCode": "87914c3e0aa2413dab93b4f1f28c67e6",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 10000,
+                "coinAmount": "100",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满200可用",
+                "title": "100元红包"
+              },
+              {
+                "amount": "50",
+                "benefitCode": "9e71ee40134942d29429dbe18d8c9039",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 5000,
+                "coinAmount": "50",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满100可用",
+                "title": "50元红包"
+              },
+              {
+                "amount": "30",
+                "benefitCode": "49a62b1b07184907a569d7c1c602b55c",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 3000,
+                "coinAmount": "30",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满60可用",
+                "title": "30元红包"
+              },
+              {
+                "amount": "10",
+                "benefitCode": "450dd5075ffb43bbb1e5321249a98baa",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 1000,
+                "coinAmount": "10",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满11可用",
+                "title": "10元红包"
+              },
+              {
+                "amount": "10",
+                "benefitCode": "df0c915232844692913064bcec3d6978",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 1000,
+                "coinAmount": "10",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满20可用",
+                "title": "满20减10"
+              },
+              {
+                "amount": "5",
+                "benefitCode": "a31505ebbd26470e813ff145672e24e7",
+                "btnText": "已被抢光",
+                "buttonTips": "已被抢光",
+                "cent": 500,
+                "coinAmount": "5",
+                "desc": "实物通用",
+                "status": "SOLD_OUT",
+                "subDesc": "满6可用",
+                "title": "5元红包"
+              },
+              {
+                "amount": "5",
+                "benefitCode": "1087d87c19414db8aad18b643e096ce5",
+                "btnText": "今日已兑换",
+                "buttonTips": "今日已兑换",
+                "cent": 500,
+                "coinAmount": "5",
+                "desc": "实物通用",
+                "status": "EXCHANGED",
+                "subDesc": "满10可用",
+                "title": "5元红包"
+              },
+              {
+                "amount": "2",
+                "benefitCode": "66e434e7bf3e49509a2f54c979bda34a",
+                "btnText": "2礼享金兑换",
+                "buttonTips": "立即兑换",
+                "cent": 200,
+                "coinAmount": "2",
+                "desc": "实物通用",
+                "status": "AVAILABLE",
+                "subDesc": "满3可用",
+                "title": "2元红包"
+              }
+            ]
+          }
+        },
+        "performance_info": {
+          "response_time": 222,
+          "request_start_time": "0.001",
+          "request_end_time": "0.223"
+        },
+        "api_info": {
+          "version": "1.0",
+          "needLogin": true,
+          "method": "GET",
+          "domain": "h5api.m.tmall.com"
+        }
+      },
+      "url": "https://h5api.m.tmall.com/h5/mtop.fission.gift.share.vcoin.exchange.allpage/1.0/?jsv=2.6.1&appKey=12574478&t=1762663136296&sign=478769243eccb5ecbf64cf2db933d480&api=mtop.fission.gift.share.vcoin.exchange.allpage&v=1.0&timeout=4096&needRetry=true&type=jsonp&dataType=jsonp&callback=mtopjsonp2&data=%7B%7D"
+    }
+  ],
+  "metadata": {
+    "start_time": "2025-11-07T13:30:00",
+    "total_captures": 28,
+    "last_updated": "2025-11-09T04:39:05",
+    "capture_type": "extracted_parameters",
+    "content_optimized": true
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "timestamp": "2025-11-10T10:00:00",
+  "type": "exchange_red_packet_request",
+  "source": "user_provided",
+  "description": "用户点击兑换红包时的实际请求",
+  "request": {
+    "method": "GET",
+    "url": "https://h5api.m.tmall.com/h5/mtop.fisson.gift.share.vcoin.exchange/1.0/",
+    "full_url": "https://h5api.m.tmall.com/h5/mtop.fisson.gift.share.vcoin.exchange/1.0/?jsv=2.6.1&appKey=12574478&t=1762790177105&sign=ecf3f54163c4e84246b30c3d6e6f897f&api=mtop.fisson.gift.share.vcoin.exchange&v=1.0&ecode=1&timeout=4096&isSec=1&secType=2&needWua=true&isNeedWua=true&needRetry=true&type=jsonp&dataType=jsonp&asac=2A21B24LA1SI0HB0EEVN03&callback=mtopjsonp7&data=%7B%22asac%22%3A%222A21B24LA1SI0HB0EEVN03%22%2C%22benefitCode%22%3A%2266e434e7bf3e49509a2f54c979bda34a%22%2C%22type%22%3A%22redPacket%22%2C%22ua%22%3A%22140%23nmuoUceczzPKw...%22%2C%22umidToken%22%3A%22T2gArl5MCqpJaBLQXh3b0XpsLlW0Q8QIGFCyCRFo-Sexi_R96cJYmWwtsGL-5k4Eav0%3D%22%7D",
+    "params": {
+      "jsv": "2.6.1",
+      "appKey": "12574478",
+      "t": "1762790177105",
+      "sign": "ecf3f54163c4e84246b30c3d6e6f897f",
+      "api": "mtop.fisson.gift.share.vcoin.exchange",
+      "v": "1.0",
+      "ecode": "1",
+      "timeout": "4096",
+      "isSec": "1",
+      "secType": "2",
+      "needWua": "true",
+      "isNeedWua": "true",
+      "needRetry": "true",
+      "type": "jsonp",
+      "dataType": "jsonp",
+      "asac": "2A21B24LA1SI0HB0EEVN03",
+      "callback": "mtopjsonp7"
+    },
+    "data_param_raw": "%7B%22asac%22%3A%222A21B24LA1SI0HB0EEVN03%22%2C%22benefitCode%22%3A%2266e434e7bf3e49509a2f54c979bda34a%22%2C%22type%22%3A%22redPacket%22%2C%22ua%22%3A%22140%23nmuoUceczzPKwQo2%2BbsbK3N8s9zoGBz%2B%2Bpst0aPrbTaWOHfLrvVKnCmvnSMxRV%2FaKFITlp1zzXgB6bWggbzxDo0d7th%2Fzzrb22U3l61DDvw%2BtA%2FqUb%2Bx2oa3V3gqz%2B%2Bxd6rVOSvZrI7ZbhGatVKoy8A3GyouJZ2FrRW0nG3B%2ByX5D%2BaWBPgAUVHwx09FnQzutXoaGxP7UddL44z0TJO3t6jQgWPWTpzgDmeALU1pFUK7kWD1QzKWX3Oje9MVnR32ev%2FXNCBrOBa2zPFEKNUnjI7KU%2FLuAuGjMnflJYSZwdK7P2FDj6NA3fzawK3uctwGvKYlTa%2FmNYwStANNm%2F3mlSHiczZTjIrwwh0ADB30uoIg%2Fya%2FNYBzNmJ9aS0TImo%2BWjMpWnhCqRVR%2B78bIgS1dgoKuItZ4LDuJMRxB6rgTw87A%2Fw74frGg65W9TDjpgB9FzOSoYtOK2zf6RBmMjJMsOWrYrUZoGD1DEgT%2FYRbPLleXpGDCSY8kONCucfuwywixjV7kkZ4mfidjL246skDrvnrgteyyffOQgAl4UDGiOCn14PrvGuygTFscG%2BSc5%2BKfzfkKWLcYBQ%2B7W6dXfTDXB%2F5l9KkruA36p845ENn8PN5YhdfpufVOawPrPxB%2BsL6hLWI9Rvxz2l%2FY6GxZiLWfZMdbw%2BlZk0SdRHf%2Fa9TWLXRHlg3XpoNXbP0VGBNLtW0WoXyNMih08ZXhl7NT8FVhqF%2Bb%2FATY%2B6SZltkENZ4VFs9dG3slw8BXrsU7ejw5cexm9TKLQblf3Q0Qa0YOniBGTesLT%2FzYrpUnDO5Cg0Ubn6%2FG5qurEDyt4PSxqs0PbRh79CSbO%2FGbKqYmSqzxONzYiDcxp5L13Nlsf3KGXiaG6g5VlBreCI7nHIL7WS40WoarvYhHa7AtyS%3D%22%2C%22umidToken%22%3A%22T2gArl5MCqpJaBLQXh3b0XpsLlW0Q8QIGFCyCRFo-Sexi_R96cJYmWwtsGL-5k4Eav0%3D%22%7D",
+    "data_param_decoded": {
+      "asac": "2A21B24LA1SI0HB0EEVN03",
+      "benefitCode": "66e434e7bf3e49509a2f54c979bda34a",
+      "type": "redPacket",
+      "ua": "140#nmuoUceczzPKwQo2+bsbK3N8s9zoGBz++pst0aPrbTaWOHfLrvVKnCmvnSMxRV/aKFITlp1zzXgB6bWggbzxDo0d7th/zzrb22U3l61DDvw+tA/qUb+x2oa3V3gqz++xd6rVOSvZrI7ZbhGatVKoy8A3GyouJZ2FrRW0nG3B+yX5D+aWBPgAUVHwx09FnQzutXoaGxP7UddL44z0TJO3t6jQgWPWTpzgDmeALU1pFUK7kWD1QzKWX3Oje9MVnR32ev/XNCBrOBa2zPFEKNUnjI7KU/LuAuGjMnflJYSZwdK7P2FDj6NA3fzawK3uctwGvKYlTa/mNYwStANNm/3mlSHiczZTjIrwwh0ADB30uoIg/ya/NYBzNmJ9aS0TImo+WjMpWnhCqRVR+78bIgS1dgoKuItZ4LDuJMRxB6rgTw87A/w74frGg65W9TDjpgB9FzOSoYtOK2zf6RBmMjJMsOWrYrUZoGD1DEgT/YRbPLleXpGDCSY8kONCucfuwywixjV7kkZ4mfidjL246skDrvnrgteyyffOQgAl4UDGiOCn14PrvGuygTFscG+Sc5+KfzfkKWLcYBQ+7W6dXfTDXB/5l9KkruA36p845ENn8PN5YhdfpufVOawPrPxB+sL6hLWI9Rvxz2l/Y6GxZiLWfZMdbw+lZk0SdRHf/a9TWLXRHlg3XpoNXbP0VGBNLtW0WoXyNMih08ZXhl7NT8FVhqF+b/ATY+6SZltkENZ4VFs9dG3slw8BXrsU7ejw5cexm9TKLQblf3Q0Qa0YOniBGTesLT/zYrpUnDO5Cg0Ubn6/G5qurEDyt4PSxqs0PbRh79CSbO/GbKqYmSqzxONzYiDcxp5L13Nlsf3KGXiaG6g5VlBreCI7nHIL7WS40WoarvYhHa7AtyS=",
+      "umidToken": "T2gArl5MCqpJaBLQXh3b0XpsLlW0Q8QIGFCyCRFo-Sexi_R96cJYmWwtsGL-5k4Eav0="
+    },
+    "headers": {
+      "accept": "*/*",
+      "accept-language": "zh-CN,zh;q=0.9",
+      "referer": "https://pages.tmall.com/",
+      "sec-ch-ua": "\"Microsoft Edge\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "sec-fetch-dest": "script",
+      "sec-fetch-mode": "no-cors",
+      "sec-fetch-site": "same-site",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+    },
+    "cookies": {
+      "_m_h5_tk": "fcfaee10bf64bc0b3ed667432fc6d525_1762797076975",
+      "_m_h5_tk_enc": "4be892be5738fc74e0a19668c1b91b84",
+      "cookie2": "181348444fca4d660231760bc5d2b0cf",
+      "_tb_token_": "e58e31d94eea4",
+      "dnk": "maxtung614",
+      "unb": "2214191126140",
+      "lgc": "maxtung614"
+    }
+  },
+  "analysis": {
+    "api_name": "mtop.fisson.gift.share.vcoin.exchange",
+    "api_name_note": "注意拼写是 fisson 不是 fission",
+    "exchange_type": "redPacket",
+    "required_params": [
+      "asac",
+      "benefitCode",
+      "type",
+      "ua",
+      "umidToken"
+    ],
+    "security_features": {
+      "isSec": "1",
+      "secType": "2",
+      "needWua": "true",
+      "isNeedWua": "true",
+      "ecode": "1"
+    },
+    "signature_algorithm": {
+      "formula": "MD5(token & timestamp & appKey & data)",
+      "token": "fcfaee10bf64bc0b3ed667432fc6d525",
+      "timestamp": "1762790177105",
+      "appKey": "12574478",
+      "data": "{\"asac\":\"2A21B24LA1SI0HB0EEVN03\",\"benefitCode\":\"66e434e7bf3e49509a2f54c979bda34a\",\"type\":\"redPacket\",\"ua\":\"140#...\",\"umidToken\":\"T2gArl5MCqpJaBLQXh3b0XpsLlW0Q8QIGFCyCRFo-Sexi_R96cJYmWwtsGL-5k4Eav0=\"}",
+      "expected_sign": "ecf3f54163c4e84246b30c3d6e6f897f"
+    },
+    "notes": [
+      "这是兑换红包的请求，不是兑换商品",
+      "type字段为'redPacket'表示红包类型",
+      "还需要兑换商品的请求来对比参数差异",
+      "ua参数非常长，是设备指纹",
+      "asac是风控参数，每次请求都不同",
+      "umidToken是设备唯一标识"
+    ]
+  }
+}

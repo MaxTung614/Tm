@@ -1,0 +1,104 @@
+{
+  "project_info": {
+    "name": "天猫礼享金抢购",
+    "date": "2025-11-10",
+    "description": "兑换界面抓包数据"
+  },
+  "capture_data": [
+    {
+      "type": "html",
+      "name": "礼享金兑换页面",
+      "url": "https://pages.tmall.com/wow/z/tmallhk/act202209/gift",
+      "timestamp": "2025-11-10T10:00:00",
+      "content": "<!-- 在这里粘贴完整的HTML代码 -->"
+    },
+    {
+      "type": "request",
+      "name": "查询礼享金列表",
+      "url": "https://h5api.m.taobao.com/h5/mtop.xxx/1.0/?appKey=12574478&t=xxx&sign=xxx",
+      "method": "GET",
+      "headers": {
+        "Accept": "application/json",
+        "Cookie": "cookie2=xxx; _m_h5_tk=xxx; _tb_token_=xxx",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15",
+        "Referer": "https://pages.tmall.com/"
+      },
+      "data": null,
+      "timestamp": "2025-11-10T10:00:01"
+    },
+    {
+      "type": "response",
+      "name": "礼享金列表响应",
+      "status_code": 200,
+      "timestamp": "2025-11-10T10:00:02",
+      "content": "{\"ret\":[\"SUCCESS::调用成功\"],\"data\":{\"giftList\":[{\"id\":\"123\",\"name\":\"商品名称\",\"stock\":100}]}}"
+    },
+    {
+      "type": "request",
+      "name": "查询商品库存",
+      "url": "https://h5api.m.taobao.com/h5/mtop.xxx.stock/1.0/?appKey=12574478&t=xxx&sign=xxx",
+      "method": "GET",
+      "headers": {
+        "Cookie": "cookie2=xxx; _m_h5_tk=xxx",
+        "User-Agent": "Mozilla/5.0 ..."
+      },
+      "data": null,
+      "timestamp": "2025-11-10T10:00:03"
+    },
+    {
+      "type": "response",
+      "name": "库存查询响应",
+      "status_code": 200,
+      "timestamp": "2025-11-10T10:00:04",
+      "content": "{\"ret\":[\"SUCCESS\"],\"data\":{\"stock\":100,\"available\":true}}"
+    },
+    {
+      "type": "request",
+      "name": "兑换礼享金（核心请求）",
+      "url": "https://h5api.m.taobao.com/h5/mtop.tmall.gift.exchange/1.0/?appKey=12574478&t=xxx&sign=xxx",
+      "method": "POST",
+      "headers": {
+        "Accept": "application/json",
+        "Cookie": "cookie2=xxx; _m_h5_tk=xxx; _m_h5_tk_enc=xxx; _tb_token_=xxx",
+        "User-Agent": "Mozilla/5.0 ...",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Referer": "https://pages.tmall.com/"
+      },
+      "data": {
+        "giftId": "12345",
+        "quantity": 1,
+        "addressId": "67890"
+      },
+      "timestamp": "2025-11-10T10:00:05",
+      "notes": "这是最关键的请求，需要完整的headers和data"
+    },
+    {
+      "type": "response",
+      "name": "兑换成功响应",
+      "status_code": 200,
+      "timestamp": "2025-11-10T10:00:06",
+      "content": "{\"ret\":[\"SUCCESS::兑换成功\"],\"data\":{\"success\":true,\"orderId\":\"987654321\",\"message\":\"兑换成功\"}}"
+    },
+    {
+      "type": "response",
+      "name": "兑换失败响应（示例）",
+      "status_code": 200,
+      "timestamp": "2025-11-10T10:00:07",
+      "content": "{\"ret\":[\"FAIL_SYS_TOKEN_EMPTY::令牌为空\"],\"data\":null}",
+      "notes": "失败情况的响应示例也很重要"
+    },
+    {
+      "type": "curl",
+      "name": "兑换请求（cURL格式）",
+      "timestamp": "2025-11-10T10:00:08",
+      "content": "curl 'https://h5api.m.taobao.com/h5/mtop.tmall.gift.exchange/1.0/?appKey=12574478&t=1234567890&sign=abc123' -H 'Cookie: cookie2=xxx; _m_h5_tk=xxx' -H 'User-Agent: Mozilla/5.0...' --data-raw '{\"giftId\":\"12345\"}'"
+    }
+  ],
+  "important_notes": [
+    "请确保所有敏感信息已脱敏（姓名、手机号、地址等）",
+    "Cookie值可以部分替换为xxx，但需要保留格式",
+    "sign参数非常重要，请提供完整的值",
+    "t（时间戳）参数也需要保留",
+    "请提供成功和失败两种响应示例"
+  ]
+}
