@@ -10,7 +10,8 @@ import {
   Menu, 
   X,
   Wallet,
-  User
+  User,
+  Users
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 
@@ -27,6 +28,7 @@ export default function Layout({ children }: LayoutProps) {
   const navigation = [
     { name: '红包中心', href: '/', icon: Gift },
     { name: '任务管理', href: '/tasks', icon: ListTodo },
+    { name: '账号管理', href: '/accounts', icon: Users },
     { name: '设置', href: '/settings', icon: Settings },
   ];
 

@@ -1,0 +1,169 @@
+========================================
+  Tmall Gift Snatcher System
+  START HERE - Quick Guide
+========================================
+
+IMPORTANT: If you see garbled text in Chinese scripts,
+           use the English versions (_en.bat files)
+
+========================================
+STEP 1: Check Your Environment
+========================================
+
+Double-click to run:
+    check_env_en.bat
+
+This will check if you have:
+- Python 3.10+
+- Node.js 18+
+- Poetry (optional)
+
+========================================
+STEP 2: Install Missing Software
+========================================
+
+If Python is missing:
+1. Visit: https://www.python.org/downloads/
+2. Download Python 3.10 or higher
+3. IMPORTANT: Check "Add Python to PATH" during installation
+4. Restart command prompt
+
+If Node.js is missing:
+1. Visit: https://nodejs.org/
+2. Download LTS version (recommended)
+3. Install with default settings
+4. Restart command prompt
+
+Poetry is optional:
+- If you have it: Use start_en.bat
+- If you don't: Use start_simple_en.bat (recommended for beginners)
+
+========================================
+STEP 3: Start the System
+========================================
+
+Choose ONE of the following:
+
+Option A: With Poetry
+    Double-click: start_en.bat
+
+Option B: Without Poetry (Simpler)
+    Double-click: start_simple_en.bat
+
+Option C: Build Standalone .exe
+    Double-click: build.bat
+    Then run: dist\TmallGiftSnatcher.exe
+
+========================================
+WHAT TO EXPECT
+========================================
+
+When you run the start script:
+1. Dependencies will be installed (first time only, takes 5-10 minutes)
+2. Two windows will open:
+   - Frontend (Vite dev server)
+   - Backend (FastAPI server)
+3. Your browser will open automatically at:
+   http://localhost:5173
+
+========================================
+TROUBLESHOOTING
+========================================
+
+Problem: Script closes immediately
+Solution: Run check_env_en.bat to see what's missing
+
+Problem: "Python not found"
+Solution: Install Python and check "Add to PATH"
+         Restart command prompt after installation
+
+Problem: "Node not found"
+Solution: Install Node.js from https://nodejs.org/
+         Restart command prompt after installation
+
+Problem: Dependencies installation fails
+Solution: Check your internet connection
+         Try using a VPN if in China
+
+Problem: Port already in use
+Solution: Close other programs using port 8000 or 5173
+         Or restart your computer
+
+========================================
+FILE GUIDE
+========================================
+
+English versions (Recommended if you see garbled text):
+- check_env_en.bat         : Check environment
+- start_en.bat             : Start with Poetry
+- start_simple_en.bat      : Start without Poetry (simpler)
+
+Chinese versions (May show garbled text on some systems):
+- check_environment.bat    : Same as check_env_en.bat
+- start.bat                : Same as start_en.bat
+- start_simple.bat         : Same as start_simple_en.bat
+
+Build:
+- build.bat                : Build standalone .exe file
+
+========================================
+RECOMMENDED PATH FOR BEGINNERS
+========================================
+
+1. Run: check_env_en.bat
+2. Install Python and Node.js if needed
+3. Run: start_simple_en.bat
+4. Wait for browser to open
+5. Start using the system!
+
+Total time: 30-60 minutes (including downloads)
+
+========================================
+RECOMMENDED PATH FOR ADVANCED USERS
+========================================
+
+1. Install Python, Node.js, and Poetry
+2. Run: start_en.bat
+3. Or build once: build.bat
+4. Then always use: dist\TmallGiftSnatcher.exe
+
+========================================
+DOCUMENTATION
+========================================
+
+English:
+- QUICK_START_GUIDE.md     : 3-minute guide
+- USER_GUIDE.md            : Complete manual
+- TROUBLESHOOTING.md       : Common problems
+- PACKAGING_GUIDE.md       : How to build .exe
+
+========================================
+SUPPORT
+========================================
+
+If you still have problems:
+1. Read TROUBLESHOOTING.md
+2. Check if antivirus is blocking the program
+3. Try running as Administrator
+4. Submit an issue on GitHub with:
+   - Output from check_env_en.bat
+   - Screenshots of errors
+   - Your Windows version
+
+========================================
+QUICK START (TL;DR)
+========================================
+
+Fastest way to get started:
+
+1. check_env_en.bat
+2. Install what's missing
+3. start_simple_en.bat
+4. Done!
+
+========================================
+
+Good luck! :)
+
+For detailed instructions, see:
+QUICK_START_GUIDE.md

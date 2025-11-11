@@ -23,7 +23,7 @@ interface RedPacket {
   name: string;
   amount: string;
   coinCost: number;
-  type: 'phone' | 'cash' | 'coupon';
+  type: 'redPacket';  // 只保留红包类型
   status: 'available' | 'claimed' | 'expired';
   expireTime?: string;
   description?: string;
@@ -57,9 +57,9 @@ export default function Dashboard() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // 并发请求红包列表和统计数据
+      // 并发请求红包列表和统计数据，只获取红包类型
       const [giftsResponse, statsResponse] = await Promise.all([
-        giftService.getGiftList({ status: 'available' }),
+        giftService.getGiftList({ status: 'available', type: 'redPacket' }),  // 只获取红包
         statsService.getDashboardStats(),
       ]);
 
@@ -82,7 +82,7 @@ export default function Dashboard() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      const response = await giftService.getGiftList({ status: 'available' });
+      const response = await giftService.getGiftList({ status: 'available', type: 'redPacket' });  // 只获取红包
       
       if (response.success && response.data) {
         setRedPackets(response.data.gifts || []);
@@ -168,32 +168,14 @@ export default function Dashboard() {
     }
   };
 
-  // 获取类型图标
+  // 获取类型图标 - 简化为只显示红包
   const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'phone':
-        return '📱';
-      case 'cash':
-        return '💰';
-      case 'coupon':
-        return '🎫';
-      default:
-        return '🎁';
-    }
+    return '💰';  // 统一使用红包图标
   };
 
-  // 获取类型文本
+  // 获取类型文本 - 简化为只显示红包
   const getTypeText = (type: string) => {
-    switch (type) {
-      case 'phone':
-        return '话费';
-      case 'cash':
-        return '现金';
-      case 'coupon':
-        return '优惠券';
-      default:
-        return '未知';
-    }
+    return '现金红包';  // 统一显示为现金红包
   };
 
   if (isLoading) {
@@ -212,8 +194,8 @@ export default function Dashboard() {
       {/* 头部 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">抢购中心</h1>
-          <p className="text-sm text-gray-600 mt-1">实时监控，快速抢购</p>
+          <h1 className="text-2xl font-bold text-gray-900">🎁 红包抢购中心</h1>
+          <p className="text-sm text-gray-600 mt-1">天猫礼享金自动抢购，一键领取所有红包</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -297,18 +279,18 @@ export default function Dashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>可用红包</CardTitle>
-              <CardDescription>点击立即抢购，先到先得</CardDescription>
+              <CardTitle>💰 可用红包列表</CardTitle>
+              <CardDescription>系统自动加载所有可抢红包，点击一键抢购即可全部领取</CardDescription>
             </div>
-            <Badge variant="secondary">{redPackets.length} 个可用</Badge>
+            <Badge variant="secondary" className="bg-orange-100 text-orange-700">{redPackets.length} 个可抢</Badge>
           </div>
         </CardHeader>
         <CardContent>
           {redPackets.length === 0 ? (
             <div className="text-center py-12">
               <AlertCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">暂无可用红包</p>
-              <p className="text-sm text-gray-400">请稍后刷新查看</p>
+              <p className="text-gray-500 mb-2">暂无可抢红包</p>
+              <p className="text-sm text-gray-400">请点击右上角"刷新"按钮重新获取</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -326,11 +308,11 @@ export default function Dashboard() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-2">
-                        <span className="text-2xl">{getTypeIcon(packet.type)}</span>
+                        <span className="text-2xl">💰</span>
                         <div>
-                          <CardTitle className="text-base">{packet.name}</CardTitle>
+                          <CardTitle className="text-base">{packet.name || '现金红包'}</CardTitle>
                           <CardDescription className="text-xs">
-                            {packet.benefitCode}
+                            ID: {packet.benefitCode.slice(0, 8)}...
                           </CardDescription>
                         </div>
                       </div>
@@ -346,10 +328,10 @@ export default function Dashboard() {
                   <CardContent className="space-y-3">
                     <div className="flex items-baseline space-x-1">
                       <span className="text-2xl font-bold text-orange-600">
-                        {packet.amount}
+                        ¥{packet.amount}
                       </span>
                       <span className="text-xs text-gray-500">
-                        需 {packet.coinCost} 金币
+                        现金红包
                       </span>
                     </div>
 
