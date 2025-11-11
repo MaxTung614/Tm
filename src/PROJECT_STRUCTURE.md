@@ -1,214 +1,136 @@
-# 天猫礼享金抢购系统 - 项目结构
+# 项目结构说明
 
-## 📁 项目目录结构
+## 📁 目录结构
 
 ```
 天猫礼享金抢购系统/
-├── 📂 backend/                    # 后端服务
-│   ├── api/                       # API 路由
-│   │   ├── accounts.py           # 账号管理接口
-│   │   ├── auth.py               # 认证接口
-│   │   ├── gifts.py              # 礼品接口
-│   │   ├── risk_params.py        # 风控参数接口
-│   │   ├── settings.py           # 设置接口
-│   │   ├── stats.py              # 统计接口
-│   │   └── tasks.py              # 任务接口
-│   ├── models/                    # 数据模型
-│   │   └── schemas.py            # Pydantic 模型
-│   ├── services/                  # 业务逻辑
-│   │   ├── account_service.py    # 账号服务
-│   │   ├── auth_service.py       # 认证服务
-│   │   ├── device_service.py     # 设备服务
-│   │   ├── gift_service.py       # 礼品服务
-│   │   ├── risk_params_service.py # 风控参数服务
-│   │   ├── settings_service.py   # 设置服务
-│   │   ├── stats_service.py      # 统计服务
-│   │   └── task_service.py       # 任务服务
-│   ├── utils/                     # 工具类
-│   │   └── cookie_storage.py    # Cookie 存储
-│   └── main.py                    # FastAPI 入口
 │
-├── 📂 TSDK/                       # 淘宝 SDK
-│   ├── api/                       # API 封装
-│   │   ├── taobao/               # 淘宝 API
-│   │   │   ├── gift.py          # 礼享金 API
-│   │   │   └── h5.py            # H5 登录 API
-│   │   ├── types/                # 类型定义
-│   │   │   └── taobao.py        # 淘宝类型
-│   │   └── base.py               # 基础 API 类
-│   ├── storage/                   # 存储管理
-│   │   └── cookie_manager.py    # Cookie 管理器
-│   ├── tools/                     # 工具集
-│   │   └── extract_browser_params.py  # 参数提取
-│   └── main.py                    # TSDK 主程序
+├── 📚 docs/                    # 文档中心
+│   ├── guides/                # 使用指南
+│   └── README.md             # 文档索引
 │
-├── 📂 tools/                      # 独立工具集
-│   ├── umid_token_extractor.py   # UMID Token 提取器
-│   ├── auto_extract_params.py    # 自动参数提取器
-│   ├── param_manager.py          # 参数管理器
-│   ├── validate_params.py        # 参数验证器
-│   └── README.md                 # 工具使用说明
+├── 🔧 scripts/                # 启动脚本
+│   └── README.md             # 脚本说明
 │
-├── 📂 components/                 # React 组件
-│   ├── auth/                     # 认证组件
-│   │   └── QRCodeLogin.tsx      # 二维码登录
-│   ├── layout/                   # 布局组件
-│   │   └── Layout.tsx           # 主布局
-│   └── ui/                       # UI 组件（shadcn/ui）
+├── 🐍 backend/                # Python 后端
+│   ├── api/                  # API 路由
+│   ├── services/             # 业务逻辑
+│   ├── models/               # 数据模型
+│   ├── utils/                # 工具函数
+│   └── main.py              # 后端入口
 │
-├── 📂 pages/                      # 页面组件
-│   ├── Dashboard.tsx             # 仪表盘
-│   ├── Accounts.tsx              # 账号管理
-│   ├── Tasks.tsx                 # 任务管理
-│   ├── Settings.tsx              # 系统设置
-│   ├── ExtractParams.tsx         # 参数提取
-│   └── Login.tsx                 # 登录页
+├── ⚛️ 前端文件（根目录）
+│   ├── components/           # React 组件
+│   │   ├── auth/            # 认证组件
+│   │   ├── layout/          # 布局组件
+│   │   └── ui/              # UI组件库
+│   ├── pages/               # 页面组件
+│   ├── contexts/            # React上下文
+│   ├── lib/                 # 工具库
+│   ├── styles/              # 样式文件
+│   ├── main.tsx            # 前端入口
+│   └── index.html          # HTML模板
 │
-├── 📂 contexts/                   # React Context
-│   └── AuthContext.tsx           # 认证上下文
+├── 📦 TSDK/                   # 淘宝SDK
+│   ├── api/                  # API封装
+│   ├── tools/                # 工具函数
+│   └── storage/              # 存储管理
 │
-├── 📂 lib/                        # 工具库
-│   ├── api-client.ts             # API 客户端
-│   ├── api-config.ts             # API 配置
-│   └── api-services.ts           # API 服务
+├── 🛠️ tools/                  # 工具脚本
+│   ├── auto_extract_params.py  # 自动提取参数
+│   ├── umid_token_extractor.py # UMID提取
+│   ├── validate_params.py      # 参数验证
+│   └── param_manager.py        # 参数管理
 │
-├── 📂 data/                       # 数据目录
-│   └── risk_params.json          # 风控参数配置
+├── 💾 data/                   # 数据存储（运行时生成）
+│   ├── cookies/              # Cookie存储
+│   ├── accounts/             # 账号数据
+│   └── risk_params.json     # 风控参数
 │
-├── 📂 styles/                     # 样式文件
-│   └── globals.css               # 全局样式
+├── 📝 配置文件
+│   ├── package.json          # Node.js依赖
+│   ├── pyproject.toml        # Python依赖
+│   ├── vite.config.ts        # Vite配置
+│   ├── tsconfig.json         # TypeScript配置
+│   └── tailwind.config.js    # Tailwind配置
 │
-├── 📂 guidelines/                 # 项目指南
-│   └── Guidelines.md             # 开发指南
+├── 🚀 启动文件
+│   ├── launcher.py           # Python启动器
+│   ├── start.bat            # Windows启动
+│   ├── start_en.bat         # Windows启动（英文）
+│   └── build.bat            # Windows构建
 │
-├── 📄 App.tsx                     # React 主组件
-├── 📄 main.tsx                    # React 入口
-├── 📄 index.html                  # HTML 入口
-│
-├── 📄 pyproject.toml              # Python 项目配置
-├── 📄 poetry.lock                 # Python 依赖锁定
-├── 📄 package.json                # Node.js 项目配置
-│
-├── 📄 vite.config.ts              # Vite 配置
-├── 📄 tsconfig.json               # TypeScript 配置
-│
-├── 📄 start_backend.bat           # Windows 启动脚本
-│
-└── 📄 文档目录/
-    ├── README.md                  # 项目主文档
-    ├── FINAL_ANSWER.md            # 完整解答文档
-    ├── AUTO_RED_PACKET_GUIDE.md   # 自动抢购指南
-    ├── MULTI_ACCOUNT_GUIDE.md     # 多账号指南
-    ├── DEVICE_MANAGEMENT_GUIDE.md # 设备管理指南
-    └── API_DOCUMENTATION.md       # API 文档
+└── 📄 README.md              # 项目说明
+
 ```
 
-## 🎯 核心模块说明
+## 🔍 关键文件说明
 
-### 1. 后端服务（Backend）
-- **FastAPI** 驱动的 RESTful API
-- 多账号管理和认证
-- 任务调度和执行
-- Cookie 安全存储
-- 风控参数管理
+### 入口文件
+- `launcher.py` - 主启动器，同时启动前后端
+- `main.tsx` - React应用入口
+- `backend/main.py` - FastAPI应用入口
 
-### 2. TSDK 模块
-- 淘宝 API 封装
-- 礼享金抢购逻辑
-- H5 扫码登录
-- Cookie 管理
-- 风控参数处理
+### 配置文件
+- `pyproject.toml` - Python项目配置（Poetry）
+- `package.json` - Node.js项目配置
+- `vite.config.ts` - Vite构建配置
+- `tsconfig.json` - TypeScript配置
 
-### 3. 独立工具集（Tools）
-- **umid_token_extractor.py**: UMID Token 提取
-- **auto_extract_params.py**: 自动参数提取
-- **param_manager.py**: 参数管理
-- **validate_params.py**: 参数验证
+### 核心模块
+- `backend/services/` - 核心业务逻辑
+- `components/` - React组件
+- `TSDK/` - 淘宝SDK封装
+- `tools/` - 辅助工具脚本
 
-### 4. 前端应用
-- **React 18** + **TypeScript**
-- **Tailwind CSS** + **shadcn/ui**
-- 响应式设计
-- 多账号界面
-- 实时数据展示
+## 📊 数据流向
 
-## 📦 配置文件
-
-### Python 环境
-- `pyproject.toml`: Poetry 项目配置
-- `poetry.lock`: 依赖版本锁定
-
-### Node.js 环境
-- `package.json`: npm 依赖配置
-- `vite.config.ts`: Vite 构建配置
-- `tsconfig.json`: TypeScript 编译配置
-
-### 数据配置
-- `data/risk_params.json`: 风控参数配置
-
-## 🚀 快速启动
-
-### 1. 启动后端
-```bash
-# Windows
-start_backend.bat
-
-# Linux/Mac
-cd backend
-poetry run uvicorn main:app --reload --port 8000
+```
+用户界面 (React)
+    ↓
+API 路由 (FastAPI)
+    ↓
+业务服务 (Services)
+    ↓
+TSDK / 数据存储
 ```
 
-### 2. 启动前端
-```bash
-npm install
-npm run dev
-```
+## 🔐 数据存储
 
-### 3. 访问应用
-打开浏览器访问: http://localhost:5173
+所有敏感数据存储在 `data/` 目录下：
+- Cookie加密存储
+- 账号信息加密
+- 风控参数本地保存
 
-## 📚 文档索引
+## 🚀 运行流程
 
-| 文档 | 说明 |
-|------|------|
-| README.md | 项目主文档 |
-| FINAL_ANSWER.md | 完整技术解答 |
-| AUTO_RED_PACKET_GUIDE.md | 自动抢购使用指南 |
-| MULTI_ACCOUNT_GUIDE.md | 多账号管理指南 |
-| DEVICE_MANAGEMENT_GUIDE.md | 设备管理指南 |
-| API_DOCUMENTATION.md | API 接口文档 |
-| tools/README.md | 工具使用说明 |
-| TSDK/README.md | TSDK 模块说明 |
-| guidelines/Guidelines.md | 开发规范指南 |
+1. **启动**：`launcher.py` 或 `start.bat`
+2. **后端**：启动 FastAPI 服务（端口 8000）
+3. **前端**：启动 Vite 开发服务器（端口 5173）
+4. **浏览器**：自动打开 `http://localhost:5173`
 
-## 🔧 开发规范
+## 📦 构建输出
 
-- **代码风格**: 遵循 PEP 8（Python）和 ESLint（TypeScript）
-- **组件设计**: 单一职责原则，组件化开发
-- **API 设计**: RESTful 风格，标准化响应
-- **错误处理**: 统一的异常处理机制
-- **安全性**: Cookie 加密存储，风控参数保护
+- `dist/` - 前端构建输出
+- `build/` - Python打包临时文件
+- `dist/TmallGiftSnatcher.exe` - 最终可执行文件
 
-## 📝 注意事项
+## 🔧 开发建议
 
-1. **风控参数**: 已硬编码 `asac` 参数，可多账号共用
-2. **Cookie 存储**: 采用加密存储，确保账号安全
-3. **多设备支持**: 支持不同设备的风控参数管理
-4. **定时任务**: 支持自动抢购和定时执行
-5. **日志记录**: 完整的操作日志和错误追踪
+### 添加新功能
+1. 后端：在 `backend/services/` 添加业务逻辑
+2. API：在 `backend/api/` 添加路由
+3. 前端：在 `pages/` 或 `components/` 添加组件
 
-## 🎉 项目特点
+### 修改样式
+- 全局样式：`styles/globals.css`
+- 组件样式：使用 Tailwind CSS 类
 
-✅ 完整的前后端分离架构  
-✅ 多账号并发抢购支持  
-✅ 实时数据展示和统计  
-✅ 安全的 Cookie 管理  
-✅ 灵活的风控参数配置  
-✅ 用户友好的界面设计  
-✅ 完善的错误处理机制  
-✅ 详细的开发文档  
+### 调试
+- 后端：查看终端日志
+- 前端：使用浏览器开发者工具
+- 日志文件：`logs/app.log`
 
----
+## 📚 更多信息
 
-**版本**: v1.0.0  
-**最后更新**: 2025-11-10
+查看 [docs/README.md](./docs/README.md) 获取完整文档。
