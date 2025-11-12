@@ -14,7 +14,16 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
+import { 
+  logError, 
+  logWarning, 
+  logInfo,
+  ErrorCategory, 
+  getErrorMessage,
+  createUserFriendlyMessage,
+  generateErrorId
+} from '../lib/error-handler';
 
 export default function ExtractParams() {
   const [step, setStep] = useState(1);
@@ -60,11 +69,20 @@ export default function ExtractParams() {
 
   // 自动提取参数
   const handleAutoExtract = async () => {
+    const functionName = 'handleAutoExtract';
+    const errorId = generateErrorId();
     setIsExtracting(true);
     
     try {
+      logInfo(`[${functionName}] 开始自动提取风控参数`, { errorId });
+      
       // 1. 检测设备
       const deviceInfo = detectDevice();
+      logInfo(`[${functionName}] 检测到设备信息`, { 
+        deviceName: deviceInfo.deviceName, 
+        deviceModel: deviceInfo.deviceModel,
+        errorId 
+      });
       toast.success(`检测到设备：${deviceInfo.deviceName}`);
       
       // 2. 提取 umidToken (从 cookies)
@@ -75,6 +93,7 @@ export default function ExtractParams() {
         ?.split('=')[1] || '';
       
       if (!umidToken) {
+        logWarning(`[${functionName}] 未找到 umidToken，用户可能未登录`, { errorId });
         toast.warning('未找到 umidToken，请手动输入或先登录');
       }
       
@@ -103,10 +122,25 @@ export default function ExtractParams() {
       setParams(extractedParams);
       setStep(2);
       
+      logInfo(`[${functionName}] 参数提取成功`, { 
+        hasUmidToken: !!umidToken, 
+        deviceInfo: deviceInfo.deviceName,
+        errorId 
+      });
       toast.success('参数提取成功！');
     } catch (error: any) {
-      console.error('提取失败:', error);
-      toast.error('自动提取失败，请尝试手动输入');
+      const errorCategory = ErrorCategory.DATA_EXTRACTION;
+      const errorMessage = getErrorMessage(error);
+      
+      logError(`[${functionName}] 自动提取失败`, { 
+        error: error.message,
+        stack: error.stack,
+        errorCategory,
+        errorId 
+      });
+      
+      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      toast.error(userMessage);
     } finally {
       setIsExtracting(false);
     }
@@ -141,15 +175,73 @@ export default function ExtractParams() {
   };
 
   // 复制参数
-  const handleCopy = () => {
-    const configText = JSON.stringify(params, null, 2);
-    navigator.clipboard.writeText(configText);
-    toast.success('已复制到剪贴板！');
+  const handleCopy = async () => {
+    const functionName = 'handleCopy';
+    const errorId = generateErrorId();
+    
+    try {
+      logInfo(`[${functionName}] 开始复制风控参数到剪贴板`, { errorId });
+      
+      const configText = JSON.stringify(params, null, 2);
+      
+      // 剪贴板API可用性检查
+      if (!navigator.clipboard) {
+        throw new Error('剪贴板API不可用，请手动复制参数');
+      }
+      
+      await navigator.clipboard.writeText(configText);
+      
+      logInfo(`[${functionName}] 参数复制成功`, { 
+        configLength: configText.length,
+        errorId 
+      });
+      toast.success('已复制到剪贴板！');
+    } catch (error: any) {
+      const errorCategory = ErrorCategory.CLIPBOARD_ACCESS;
+      const errorMessage = getErrorMessage(error);
+      
+      logError(`[${functionName}] 复制参数到剪贴板失败`, { 
+        error: error.message,
+        stack: error.stack,
+        errorCategory,
+        errorId 
+      });
+      
+      // 如果剪贴板操作失败，提供备用方案
+      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      toast.error(userMessage + '，请手动复制参数');
+      
+      // 显示参数内容供用户手动复制
+      const configText = JSON.stringify(params, null, 2);
+      console.log('风控参数:', configText);
+    }
   };
 
   // 保存到系统
   const handleSaveToSystem = async () => {
+    const functionName = 'handleSaveToSystem';
+    const errorId = generateErrorId();
+    
     try {
+      logInfo(`[${functionName}] 开始保存风控参数到系统`, { 
+        hasUmidToken: !!params.umidToken,
+        hasUa: !!params.ua,
+        errorId 
+      });
+      
+      // 参数验证
+      if (!params.umidToken || !params.ua) {
+        const error = new Error('风控参数不完整，请先提取参数');
+        throw error;
+      }
+      
+      // 网络连接检查
+      if (!navigator.onLine) {
+        throw new Error('网络连接不可用，请检查网络设置');
+      }
+      
+      logInfo(`[${functionName}] 发送保存请求到后端API`, { errorId });
+      
       const response = await fetch('http://localhost:8000/api/risk-params', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -160,17 +252,42 @@ export default function ExtractParams() {
         })
       });
       
+      logInfo(`[${functionName}] 收到后端响应`, { 
+        status: response.status,
+        statusText: response.statusText,
+        errorId 
+      });
+      
       const data = await response.json();
       
       if (data.success) {
+        logInfo(`[${functionName}] 风控参数保存成功`, { errorId });
         toast.success('参数已保存到系统！');
         setStep(3);
       } else {
         throw new Error(data.message || '保存失败');
       }
     } catch (error: any) {
-      console.error('保存失败:', error);
-      toast.error(error.message || '保存失败');
+      let errorCategory = ErrorCategory.DATA_SAVE;
+      let errorMessage = getErrorMessage(error);
+      
+      // 根据错误类型进行分类
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorCategory = ErrorCategory.NETWORK;
+        errorMessage = '网络连接失败，请检查后端服务是否启动';
+      } else if (error.message.includes('不完整')) {
+        errorCategory = ErrorCategory.DATA_VALIDATION;
+      }
+      
+      logError(`[${functionName}] 保存风控参数失败`, { 
+        error: error.message,
+        stack: error.stack,
+        errorCategory,
+        errorId 
+      });
+      
+      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      toast.error(userMessage);
     }
   };
 

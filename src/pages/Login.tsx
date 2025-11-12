@@ -6,8 +6,17 @@ import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Gift, Lock, AlertCircle, CheckCircle2, QrCode, Smartphone, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import QRCodeLogin from '../components/auth/QRCodeLogin';
+import { 
+  logError, 
+  logWarning, 
+  logInfo,
+  ErrorCategory, 
+  getErrorMessage,
+  createUserFriendlyMessage,
+  generateErrorId
+} from '../lib/error-handler';
 
 export default function Login() {
   const [cookieInput, setCookieInput] = useState('');
@@ -16,18 +25,67 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    // 表单验证
     if (!cookieInput.trim()) {
+      logWarning('Login - Cookie输入为空', {
+        operation: 'cookie_login',
+        reason: 'empty_cookie_input'
+      });
+      
       toast.error('请输入Cookie');
+      return;
+    }
+
+    // 检查网络状态
+    if (!navigator.onLine) {
+      logWarning('Login - 网络连接已断开', {
+        operation: 'cookie_login',
+        networkStatus: 'offline'
+      });
+      
+      toast.error('网络连接已断开，请检查网络设置后重试');
       return;
     }
 
     setIsLoading(true);
     try {
+      logInfo('Login - 开始Cookie登录', {
+        operation: 'cookie_login',
+        timestamp: new Date().toISOString()
+      });
+
       await login(cookieInput);
+      
+      logInfo('Login - Cookie登录成功', {
+        operation: 'cookie_login',
+        success: true,
+        timestamp: new Date().toISOString()
+      });
+
       toast.success('登录成功！');
       navigate('/');
-    } catch (error) {
-      toast.error('登录失败，请检查Cookie是否正确');
+    } catch (error: any) {
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'cookie_login',
+        component: 'Login',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      // 使用统一的错误处理生成用户友好提示
+      const errorCategory = error.message?.includes('NetworkError') || error.message?.includes('网络') ? ErrorCategory.NETWORK :
+                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
+                           error.message?.includes('timeout') ? ErrorCategory.NETWORK_TIMEOUT :
+                           ErrorCategory.AUTHENTICATION;
+      
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleLogin');
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -35,21 +93,92 @@ export default function Login() {
 
   const handlePaste = async () => {
     try {
+      if (!navigator.clipboard) {
+        throw new Error('剪贴板API不可用');
+      }
+      
+      logInfo('Login - 开始从剪贴板粘贴Cookie', {
+        operation: 'paste_cookie'
+      });
+      
       const text = await navigator.clipboard.readText();
       setCookieInput(text);
+      
+      logInfo('Login - Cookie粘贴成功', {
+        operation: 'paste_cookie',
+        cookieLength: text.length
+      });
+      
       toast.success('Cookie已粘贴');
-    } catch (error) {
-      toast.error('粘贴失败，请手动输入');
+    } catch (error: any) {
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'paste_cookie',
+        component: 'Login',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      const errorCategory = ErrorCategory.CLIPBOARD_ACCESS;
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handlePaste');
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+      });
     }
   };
 
   const handleQRCodeSuccess = async (cookie: string) => {
     try {
+      // 检查网络状态
+      if (!navigator.onLine) {
+        logWarning('Login - QR码登录时网络连接已断开', {
+          operation: 'qrcode_login',
+          networkStatus: 'offline'
+        });
+        toast.error('网络连接已断开，请检查网络设置');
+        return;
+      }
+      
+      logInfo('Login - 开始QR码登录', {
+        operation: 'qrcode_login',
+        timestamp: new Date().toISOString()
+      });
+
       await login(cookie);
+      
+      logInfo('Login - QR码登录成功', {
+        operation: 'qrcode_login',
+        success: true,
+        timestamp: new Date().toISOString()
+      });
+
       toast.success('扫码登录成功！');
       navigate('/');
-    } catch (error) {
-      toast.error('登录失败，请重试');
+    } catch (error: any) {
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'qrcode_login',
+        component: 'Login',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      // 使用统一的错误处理生成用户友好提示
+      const errorCategory = error.message?.includes('NetworkError') || error.message?.includes('网络') ? ErrorCategory.NETWORK :
+                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
+                           error.message?.includes('timeout') ? ErrorCategory.NETWORK_TIMEOUT :
+                           ErrorCategory.AUTHENTICATION;
+      
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleQRCodeSuccess');
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+      });
     }
   };
 

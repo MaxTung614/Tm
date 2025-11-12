@@ -7,7 +7,7 @@ from loguru import logger
 import sys
 
 # 导入路由
-from backend.api import auth, gifts, tasks, settings, stats, risk_params, accounts
+from backend.api import auth, gifts, tasks, settings, stats, risk_params, accounts, monitor, session_health
 
 # 配置日志
 logger.remove()
@@ -40,6 +40,8 @@ app.include_router(settings.router, prefix="/api/settings", tags=["设置"])
 app.include_router(stats.router, prefix="/api/stats", tags=["统计"])
 app.include_router(risk_params.router, prefix="/api/risk-params", tags=["风控参数"])
 app.include_router(accounts.router, prefix="/api/accounts", tags=["账号管理"])
+app.include_router(monitor.router, tags=["监控"])  # 监控路由（已包含prefix）
+app.include_router(session_health.router, tags=["会话健康"])  # 会话健康路由（已包含prefix）
 
 
 @app.get("/")

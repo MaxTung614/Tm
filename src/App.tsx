@@ -7,6 +7,7 @@ import Tasks from './pages/Tasks';
 import Settings from './pages/Settings';
 import Accounts from './pages/Accounts';
 import ExtractParams from './pages/ExtractParams';
+import Monitor from './pages/Monitor';
 import Layout from './components/layout/Layout';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -23,6 +24,13 @@ function AppRoutes() {
         <PrivateRoute>
           <Layout>
             <Dashboard />
+          </Layout>
+        </PrivateRoute>
+      } />
+      <Route path="/monitor" element={
+        <PrivateRoute>
+          <Layout>
+            <Monitor />
           </Layout>
         </PrivateRoute>
       } />

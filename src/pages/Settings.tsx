@@ -7,9 +7,31 @@ import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { Textarea } from '../components/ui/textarea';
 import { Separator } from '../components/ui/separator';
-import { Save, Download, Bell, RefreshCw, Shield, Loader2 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { 
+  Save, 
+  Download, 
+  Bell, 
+  RefreshCw, 
+  Shield, 
+  Loader2, 
+  Cookie, 
+  CheckCircle2, 
+  AlertCircle,
+  Trash2
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { settingsService } from '../lib/api-services';
+import { 
+  logError, 
+  logWarning, 
+  logInfo,
+  ErrorCategory, 
+  ErrorLevel,
+  getErrorMessage,
+  createUserFriendlyMessage,
+  generateErrorId
+} from '../lib/error-handler';
+import { safeFetch } from '../lib/network-interceptor';
 
 interface Settings {
   notifications: {
@@ -56,16 +78,60 @@ export default function Settings() {
 
   // 加载设置
   const loadSettings = async () => {
+    const functionName = 'loadSettings';
+    const errorId = generateErrorId();
     setIsLoading(true);
+    
     try {
+      logInfo(`[${functionName}] 开始加载用户设置`, { errorId });
+      
+      // 检查网络连接状态
+      if (!navigator.onLine) {
+        const error = new Error('网络连接不可用，请检查网络设置');
+        throw error;
+      }
+      
       const response = await settingsService.getSettings();
       
       if (response.success && response.data) {
         setSettings(response.data);
+        logInfo(`[${functionName}] 设置加载成功`, { 
+          hasNotifications: !!response.data.notifications,
+          hasAutoRefresh: !!response.data.autoRefresh,
+          hasAdvanced: !!response.data.advanced,
+          errorId 
+        });
+      } else {
+        const errorMessage = response.message || '加载设置失败';
+        throw new Error(errorMessage);
       }
     } catch (error: any) {
-      console.error('加载设置失败:', error);
-      toast.error(error.message || '加载设置失败');
+      let errorCategory = ErrorCategory.DATA_FETCHING;
+      let errorMessage = getErrorMessage(error);
+      
+      // 根据错误类型进行分类
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorCategory = ErrorCategory.NETWORK;
+        errorMessage = '网络连接失败，请检查后端服务是否启动';
+      } else if (error.message.includes('网络连接不可用')) {
+        errorCategory = ErrorCategory.NETWORK;
+      } else if (error.message.includes('401') || error.message.includes('未授权')) {
+        errorCategory = ErrorCategory.AUTHENTICATION;
+        errorMessage = '登录状态已过期，请重新登录';
+      } else if (error.message.includes('403') || error.message.includes('禁止访问')) {
+        errorCategory = ErrorCategory.AUTHORIZATION;
+        errorMessage = '权限不足，无法加载设置';
+      }
+      
+      logError(`[${functionName}] 加载用户设置失败`, { 
+        error: error.message,
+        stack: error.stack,
+        errorCategory,
+        errorId 
+      });
+      
+      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      toast.error(userMessage);
     } finally {
       setIsLoading(false);
     }
@@ -73,18 +139,65 @@ export default function Settings() {
 
   // 保存设置
   const handleSaveSettings = async () => {
+    const functionName = 'handleSaveSettings';
+    const errorId = generateErrorId();
     setIsSaving(true);
+    
     try {
+      logInfo(`[${functionName}] 开始保存用户设置`, { errorId });
+      
+      // 检查网络连接状态
+      if (!navigator.onLine) {
+        const error = new Error('网络连接不可用，请检查网络设置');
+        throw error;
+      }
+      
       const response = await settingsService.updateSettings(settings);
       
       if (response.success) {
-        toast.success('设置已保存');
+        logInfo(`[${functionName}] 设置保存成功`, { 
+          settingsCount: Object.keys(settings).length,
+          hasNotifications: !!settings.notifications,
+          hasAutoRefresh: !!settings.autoRefresh,
+          errorId 
+        });
+        
+        toast.success('设置保存成功');
+        
+        // 重新加载设置以确保同步
+        logInfo(`[${functionName}] 重新加载设置以确保数据同步`, { errorId });
+        await loadSettings();
       } else {
-        throw new Error(response.message || '保存失败');
+        const errorMessage = response.message || '保存设置失败';
+        throw new Error(errorMessage);
       }
     } catch (error: any) {
-      console.error('保存设置失败:', error);
-      toast.error(error.message || '保存设置失败');
+      let errorCategory = ErrorCategory.DATA_SAVE;
+      let errorMessage = getErrorMessage(error);
+      
+      // 根据错误类型进行分类
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorCategory = ErrorCategory.NETWORK;
+        errorMessage = '网络连接失败，请检查后端服务是否启动';
+      } else if (error.message.includes('网络连接不可用')) {
+        errorCategory = ErrorCategory.NETWORK;
+      } else if (error.message.includes('401') || error.message?.includes('未授权')) {
+        errorCategory = ErrorCategory.AUTHENTICATION;
+        errorMessage = '登录状态已过期，请重新登录';
+      } else if (error.message.includes('403') || error.message?.includes('禁止访问')) {
+        errorCategory = ErrorCategory.AUTHORIZATION;
+        errorMessage = '权限不足，无法保存设置';
+      }
+      
+      logError(`[${functionName}] 保存用户设置失败`, { 
+        error: error.message,
+        stack: error.stack,
+        errorCategory,
+        errorId 
+      });
+      
+      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      toast.error(userMessage);
     } finally {
       setIsSaving(false);
     }
@@ -92,25 +205,82 @@ export default function Settings() {
 
   // 更新Cookie
   const handleUpdateCookie = async () => {
-    if (!cookieInput.trim()) {
-      toast.error('请输入Cookie');
-      return;
-    }
-
+    const functionName = 'handleUpdateCookie';
+    const errorId = generateErrorId();
     setIsUpdatingCookie(true);
+    
     try {
+      logInfo(`[${functionName}] 开始更新Cookie信息`, { errorId });
+      
+      // 表单验证
+      if (!cookieInput || cookieInput.trim().length === 0) {
+        const error = new Error('Cookie输入为空，无法更新');
+        throw error;
+      }
+      
+      // 简单的Cookie格式验证
+      const cookieValue = cookieInput.trim();
+      if (!cookieValue.includes('=') || cookieValue.split(';').length === 0) {
+        const error = new Error('Cookie格式不正确，请确保包含键值对');
+        throw error;
+      }
+      
+      // 检查网络连接状态
+      if (!navigator.onLine) {
+        const error = new Error('网络连接不可用，请检查网络设置');
+        throw error;
+      }
+      
       const response = await settingsService.updateCookie(cookieInput);
       
       if (response.success) {
+        logInfo(`[${functionName}] Cookie更新成功`, { 
+          cookieLength: cookieValue.length,
+          hasKeyValuePairs: cookieValue.includes('='),
+          errorId 
+        });
+        
         toast.success('Cookie已更新');
         setCookieInput('');
+        
+        // 刷新用户信息
+        logInfo(`[${functionName}] 更新Cookie后刷新用户信息`, { errorId });
         await refreshUser();
       } else {
-        throw new Error(response.message || '更新失败');
+        const errorMessage = response.message || 'Cookie更新失败';
+        throw new Error(errorMessage);
       }
     } catch (error: any) {
-      console.error('更新Cookie失败:', error);
-      toast.error(error.message || '更新Cookie失败');
+      let errorCategory = ErrorCategory.DATA_VALIDATION;
+      let errorMessage = getErrorMessage(error);
+      
+      // 根据错误类型进行分类
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorCategory = ErrorCategory.NETWORK;
+        errorMessage = '网络连接失败，请检查后端服务是否启动';
+      } else if (error.message.includes('网络连接不可用')) {
+        errorCategory = ErrorCategory.NETWORK;
+      } else if (error.message.includes('Cookie输入为空') || error.message.includes('格式不正确')) {
+        errorCategory = ErrorCategory.DATA_VALIDATION;
+        errorMessage = 'Cookie格式无效，请检查输入内容';
+      } else if (error.message.includes('401') || error.message.includes('未授权')) {
+        errorCategory = ErrorCategory.AUTHENTICATION;
+        errorMessage = '登录状态已过期，请重新登录';
+      } else if (error.message.includes('403') || error.message.includes('禁止访问')) {
+        errorCategory = ErrorCategory.AUTHORIZATION;
+        errorMessage = '权限不足，无法更新Cookie';
+      }
+      
+      logError(`[${functionName}] 更新Cookie信息失败`, { 
+        error: error.message,
+        stack: error.stack,
+        errorCategory,
+        cookieLength: cookieInput?.length,
+        errorId 
+      });
+      
+      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      toast.error(userMessage);
     } finally {
       setIsUpdatingCookie(false);
     }
@@ -118,12 +288,28 @@ export default function Settings() {
 
   // 导出数据
   const handleExport = async () => {
+    const functionName = 'handleExport';
+    const errorId = generateErrorId();
     setIsExporting(true);
+    
     try {
+      logInfo(`[${functionName}] 开始导出用户数据`, { errorId });
+      
+      // 检查网络连接状态
+      if (!navigator.onLine) {
+        const error = new Error('网络连接不可用，请检查网络设置');
+        throw error;
+      }
+      
       const response = await settingsService.exportData();
       
       if (response.success && response.data) {
         // 创建下载链接
+        logInfo(`[${functionName}] 数据导出成功，开始下载文件`, { 
+          dataSize: JSON.stringify(response.data).length,
+          errorId 
+        });
+        
         const dataStr = JSON.stringify(response.data, null, 2);
         const dataBlob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(dataBlob);
@@ -133,13 +319,46 @@ export default function Settings() {
         link.click();
         URL.revokeObjectURL(url);
         
-        toast.success('数据已导出');
+        logInfo(`[${functionName}] 文件下载完成`, { 
+          fileName: link.download,
+          errorId 
+        });
+        
+        toast.success('数据已导出并下载');
       } else {
-        throw new Error(response.message || '导出失败');
+        const errorMessage = response.message || '数据导出失败';
+        throw new Error(errorMessage);
       }
     } catch (error: any) {
-      console.error('导出数据失败:', error);
-      toast.error(error.message || '导出数据失败');
+      let errorCategory = ErrorCategory.DATA_EXPORT;
+      let errorMessage = getErrorMessage(error);
+      
+      // 根据错误类型进行分类
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorCategory = ErrorCategory.NETWORK;
+        errorMessage = '网络连接失败，请检查后端服务是否启动';
+      } else if (error.message.includes('网络连接不可用')) {
+        errorCategory = ErrorCategory.NETWORK;
+      } else if (error.message.includes('401') || error.message.includes('未授权')) {
+        errorCategory = ErrorCategory.AUTHENTICATION;
+        errorMessage = '登录状态已过期，请重新登录';
+      } else if (error.message.includes('403') || error.message.includes('禁止访问')) {
+        errorCategory = ErrorCategory.AUTHORIZATION;
+        errorMessage = '权限不足，无法导出数据';
+      } else if (error.message.includes('permission') || error.message.includes('权限')) {
+        errorCategory = ErrorCategory.AUTHORIZATION;
+        errorMessage = '导出权限不足，请联系管理员';
+      }
+      
+      logError(`[${functionName}] 导出用户数据失败`, { 
+        error: error.message,
+        stack: error.stack,
+        errorCategory,
+        errorId 
+      });
+      
+      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      toast.error(userMessage);
     } finally {
       setIsExporting(false);
     }

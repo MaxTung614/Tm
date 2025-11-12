@@ -1,21 +1,17 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
+import { toast } from 'sonner';
+import { giftService, statService } from '../lib/api-services';
 import { 
-  Gift, 
-  Sparkles, 
-  TrendingUp, 
-  Clock,
-  CheckCircle2,
-  RefreshCw,
-  Zap,
-  AlertCircle,
-  Loader2
-} from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
-import { giftService, statsService } from '../lib/api-services';
+  logError, 
+  logWarning, 
+  logInfo, 
+  ErrorCategory, 
+  ErrorLevel,
+  errorHandler,
+  createUserFriendlyMessage,
+  generateErrorId,
+  getErrorMessage
+} from '../lib/error-handler';
+import { safeFetch } from '../lib/network-interceptor';
 
 interface RedPacket {
   id: string;
@@ -57,22 +53,67 @@ export default function Dashboard() {
   const loadData = async () => {
     setIsLoading(true);
     try {
+      logInfo('开始加载仪表板数据', { 
+        operation: 'load_dashboard_data',
+        timestamp: new Date().toISOString()
+      });
+
       // 并发请求红包列表和统计数据，只获取红包类型
       const [giftsResponse, statsResponse] = await Promise.all([
         giftService.getGiftList({ status: 'available', type: 'redPacket' }),  // 只获取红包
-        statsService.getDashboardStats(),
+        statService.getStatsOverview(),
       ]);
 
       if (giftsResponse.success && giftsResponse.data) {
+        const giftCount = giftsResponse.data.gifts?.length || 0;
+        logInfo(`成功加载 ${giftCount} 个可用红包`, {
+          operation: 'load_gifts',
+          giftCount,
+          giftIds: giftsResponse.data.gifts?.map(g => g.id) || []
+        });
         setRedPackets(giftsResponse.data.gifts || []);
       }
 
       if (statsResponse.success && statsResponse.data) {
+        logInfo('成功加载统计数据', {
+          operation: 'load_stats',
+          stats: statsResponse.data
+        });
         setStats(statsResponse.data);
       }
+
+      if (!giftsResponse.success) {
+        throw new Error(`获取红包列表失败: ${giftsResponse.message || '未知错误'}`);
+      }
+
+      if (!statsResponse.success) {
+        throw new Error(`获取统计数据失败: ${statsResponse.message || '未知错误'}`);
+      }
+
+      logInfo('仪表板数据加载完成');
+
     } catch (error: any) {
-      console.error('加载数据失败:', error);
-      toast.error(error.message || '加载数据失败');
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'load_dashboard_data',
+        component: 'Dashboard',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      // 使用统一的错误处理生成用户友好提示
+      const errorCategory = error.message?.includes('NetworkError') || error.message?.includes('网络') ? ErrorCategory.NETWORK :
+                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
+                           ErrorCategory.DATA_FETCHING;
+      
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'loadData');
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+      });
+
     } finally {
       setIsLoading(false);
     }
@@ -80,19 +121,74 @@ export default function Dashboard() {
 
   // 刷新红包列表
   const handleRefresh = async () => {
+    if (isRefreshing) {
+      logWarning('刷新操作正在进行中，忽略重复请求', {
+        operation: 'refresh_gifts',
+        alreadyRefreshing: true
+      });
+      return;
+    }
+
     setIsRefreshing(true);
     try {
+      logInfo('开始刷新红包列表', {
+        operation: 'refresh_gifts',
+        timestamp: new Date().toISOString()
+      });
+
       const response = await giftService.getGiftList({ status: 'available', type: 'redPacket' });  // 只获取红包
       
       if (response.success && response.data) {
+        const newGiftCount = response.data.gifts?.length || 0;
+        const oldGiftCount = redPackets.length;
+        
+        logInfo(`刷新成功，获得 ${newGiftCount} 个红包（之前 ${oldGiftCount} 个）`, {
+          operation: 'refresh_gifts',
+          newGiftCount,
+          oldGiftCount,
+          changes: newGiftCount - oldGiftCount
+        });
+
         setRedPackets(response.data.gifts || []);
-        toast.success('刷新成功');
+        
+        // 显示差异提示
+        const changeText = newGiftCount > oldGiftCount 
+          ? `新增 ${newGiftCount - oldGiftCount} 个红包` 
+          : newGiftCount < oldGiftCount 
+          ? `减少 ${oldGiftCount - newGiftCount} 个红包`
+          : '红包数量无变化';
+          
+        toast.success(`刷新成功！${changeText}`, {
+          duration: 3000,
+        });
       } else {
         throw new Error(response.message || '刷新失败');
       }
+
+      logInfo('红包列表刷新完成');
+
     } catch (error: any) {
-      console.error('刷新失败:', error);
-      toast.error(error.message || '刷新失败');
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'refresh_gifts',
+        component: 'Dashboard',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      // 使用统一的错误处理生成用户友好提示
+      const errorCategory = error.message?.includes('NetworkError') || error.message?.includes('网络') ? ErrorCategory.NETWORK :
+                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
+                           ErrorCategory.DATA_REFRESH;
+      
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleRefresh');
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+      });
+
     } finally {
       setIsRefreshing(false);
     }
@@ -100,32 +196,115 @@ export default function Dashboard() {
 
   // 抢购单个红包
   const handleClaim = async (packet: RedPacket) => {
-    if (claimingIds.has(packet.id)) return;
+    if (claimingIds.has(packet.id)) {
+      logWarning('红包正在抢购中，忽略重复请求', {
+        operation: 'claim_gift',
+        giftId: packet.id,
+        giftName: packet.name,
+        alreadyClaiming: true
+      });
+      return;
+    }
+
+    // 检查网络状态
+    if (!navigator.onLine) {
+      logError('网络连接已断开，无法进行抢购操作', {
+        operation: 'claim_gift',
+        giftId: packet.id,
+        giftName: packet.name,
+        networkStatus: 'offline'
+      });
+
+      toast.error('网络连接已断开，请检查网络设置后重试', {
+        duration: 5000,
+      });
+      return;
+    }
 
     setClaimingIds(prev => new Set(prev).add(packet.id));
-    
+
     try {
+      logInfo(`开始抢购红包: ${packet.name}`, {
+        operation: 'claim_gift',
+        giftId: packet.id,
+        giftName: packet.name,
+        giftAmount: packet.amount,
+        coinCost: packet.coinCost,
+        timestamp: new Date().toISOString()
+      });
+
       const response = await giftService.grabGift(packet.id);
       
       if (response.success) {
-        toast.success(`成功抢购 ${packet.name}！`);
+        logInfo(`成功抢购红包: ${packet.name}`, {
+          operation: 'claim_gift',
+          giftId: packet.id,
+          giftName: packet.name,
+          amount: packet.amount,
+          success: true
+        });
         
-        // 更新红包状态
+        toast.success(`🎉 成功抢购 ${packet.name}！获得 ${packet.amount}`, {
+          duration: 4000,
+        });
+        
+        // 更新红包状态为已抢购
         setRedPackets(prev =>
           prev.map(p => p.id === packet.id ? { ...p, status: 'claimed' as const } : p)
         );
         
-        // 刷新用户余额
-        await refreshUser();
-        
-        // 刷新统计数据
-        loadData();
+        // 刷新用户余额和统计数据
+        try {
+          await Promise.all([refreshUser(), loadData()]);
+          logInfo('用户数据和统计数据刷新完成', {
+            operation: 'claim_gift_post_process',
+            giftId: packet.id
+          });
+        } catch (refreshError) {
+          // 刷新失败不影响抢购成功的结果，只记录日志
+          logWarning('抢购成功但数据刷新失败', {
+            operation: 'claim_gift_post_process',
+            giftId: packet.id,
+            error: refreshError
+          });
+        }
+
       } else {
         throw new Error(response.message || '抢购失败');
       }
+
     } catch (error: any) {
-      console.error('抢购失败:', error);
-      toast.error(error.message || '抢购失败，请重试');
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'claim_gift',
+        giftId: packet.id,
+        giftName: packet.name,
+        component: 'Dashboard',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      // 使用统一的错误处理生成用户友好提示
+      const errorCategory = error.message?.includes('timeout') || error.message?.includes('超时') ? ErrorCategory.NETWORK_TIMEOUT :
+                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
+                           error.message?.includes('already_claimed') ? ErrorCategory.RESOURCE_CONFLICT :
+                           ErrorCategory.GIFT_OPERATION;
+      
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleClaim');
+
+      // 对于已抢购的情况，立即更新状态
+      if (error.message?.includes('already_claimed')) {
+        setRedPackets(prev =>
+          prev.map(p => p.id === packet.id ? { ...p, status: 'claimed' as const } : p)
+        );
+      }
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+      });
+
     } finally {
       setClaimingIds(prev => {
         const newSet = new Set(prev);
@@ -140,29 +319,122 @@ export default function Dashboard() {
     const availablePackets = redPackets.filter(p => p.status === 'available');
     
     if (availablePackets.length === 0) {
-      toast.warning('没有可抢购的红包');
+      logWarning('没有可用的红包进行批量抢购', {
+        operation: 'batch_claim_gifts',
+        availableCount: 0,
+        reason: 'no_available_packets'
+      });
+      toast.warning('没有可抢购的红包', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // 检查网络状态
+    if (!navigator.onLine) {
+      logError('网络连接已断开，无法进行批量抢购', {
+        operation: 'batch_claim_gifts',
+        availableCount: availablePackets.length,
+        networkStatus: 'offline'
+      });
+
+      toast.error('网络连接已断开，请检查网络设置后重试', {
+        duration: 5000,
+      });
       return;
     }
 
     const giftIds = availablePackets.map(p => p.id);
+    const totalValue = availablePackets.reduce((sum, p) => sum + parseFloat(p.amount.replace(/[^\d.]/g, '')), 0);
+    
     setIsRefreshing(true);
     
     try {
+      logInfo(`开始批量抢购 ${availablePackets.length} 个红包，总价值约 ${totalValue} 元`, {
+        operation: 'batch_claim_gifts',
+        giftIds,
+        giftCount: availablePackets.length,
+        totalValue,
+        giftNames: availablePackets.map(p => p.name),
+        timestamp: new Date().toISOString()
+      });
+
       const response = await giftService.batchGrabGifts(giftIds);
       
       if (response.success && response.data) {
         const { success, failed } = response.data;
-        toast.success(`成功抢购 ${success} 个红包${failed > 0 ? `，失败 ${failed} 个` : ''}`);
+        const successRate = availablePackets.length > 0 ? Math.round((success / availablePackets.length) * 100) : 0;
         
+        logInfo(`批量抢购完成: 成功 ${success} 个，失败 ${failed} 个，成功率 ${successRate}%`, {
+          operation: 'batch_claim_gifts',
+          success,
+          failed,
+          successRate,
+          totalAttempted: availablePackets.length
+        });
+
         // 刷新数据
-        await loadData();
-        await refreshUser();
+        try {
+          await Promise.all([loadData(), refreshUser()]);
+          logInfo('批量抢购后数据刷新完成');
+        } catch (refreshError) {
+          logWarning('批量抢购成功但数据刷新失败', {
+            operation: 'batch_claim_post_refresh',
+            error: refreshError
+          });
+        }
+
+        // 根据结果显示不同的提示
+        if (success > 0) {
+          const successMessage = `🎉 成功抢购 ${success} 个红包${failed > 0 ? `，失败 ${failed} 个` : ''}`;
+          const successRateMessage = `成功率: ${successRate}%`;
+          
+          if (failed === 0) {
+            toast.success(successMessage, {
+              description: successRateMessage,
+              duration: 5000,
+            });
+          } else {
+            toast.warning(successMessage, {
+              description: `${successRateMessage} - 请检查失败原因后重试`,
+              duration: 7000,
+            });
+          }
+        } else {
+          toast.error(`���量抢购全部失败 (${failed} 个)，请稍后重试`, {
+            duration: 5000,
+          });
+        }
+
       } else {
         throw new Error(response.message || '批量抢购失败');
       }
+
     } catch (error: any) {
-      console.error('批量抢购失败:', error);
-      toast.error(error.message || '批量抢购失败');
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'batch_claim_gifts',
+        giftIds,
+        giftCount: availablePackets.length,
+        component: 'Dashboard',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      // 使用统一的错误处理生成用户友好提示
+      const errorCategory = error.message?.includes('timeout') || error.message?.includes('超时') ? ErrorCategory.NETWORK_TIMEOUT :
+                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
+                           error.message?.includes('rate_limit') ? ErrorCategory.RATE_LIMIT :
+                           ErrorCategory.BATCH_OPERATION;
+      
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleBatchClaim');
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 6000,
+      });
+
     } finally {
       setIsRefreshing(false);
     }

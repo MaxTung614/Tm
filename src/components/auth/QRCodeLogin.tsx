@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import { RefreshCw, Smartphone, CheckCircle2, XCircle, Loader2, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { authService } from '../../lib/api-services';
 
 interface QRCodeLoginProps {

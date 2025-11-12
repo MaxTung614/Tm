@@ -11,9 +11,10 @@ import {
   X,
   Wallet,
   User,
-  Users
+  Users,
+  Activity
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface LayoutProps {
   children: ReactNode;
@@ -27,6 +28,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const navigation = [
     { name: '红包中心', href: '/', icon: Gift },
+    { name: '实时监控', href: '/monitor', icon: Activity },
     { name: '任务管理', href: '/tasks', icon: ListTodo },
     { name: '账号管理', href: '/accounts', icon: Users },
     { name: '设置', href: '/settings', icon: Settings },

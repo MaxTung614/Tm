@@ -7,32 +7,39 @@ from typing import Optional
 
 from backend.models.schemas import ApiResponse
 from backend.services.stats_service import StatsService
+from backend.utils.error_handler import exception_handler, ErrorCategory, ErrorLevel
 
 router = APIRouter()
 stats_service = StatsService()
 
 
 @router.get("/dashboard")
+@exception_handler(
+    level=ErrorLevel.INFO,
+    category=ErrorCategory.BUSINESS_LOGIC,
+    log_args=False,
+    log_result=True
+)
 async def get_dashboard_stats():
     """
     获取仪表板统计数据
     """
-    try:
-        logger.info("获取仪表板统计")
-        
-        stats = await stats_service.get_dashboard_stats()
-        
-        return ApiResponse(
-            success=True,
-            message="获取成功",
-            data=stats
-        )
-    except Exception as e:
-        logger.error(f"获取统计数据失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    stats = await stats_service.get_dashboard_stats()
+    
+    return ApiResponse(
+        success=True,
+        message="获取成功",
+        data=stats
+    )
 
 
 @router.get("/history")
+@exception_handler(
+    level=ErrorLevel.INFO,
+    category=ErrorCategory.BUSINESS_LOGIC,
+    log_args=True,
+    log_result=True
+)
 async def get_history(
     start_date: Optional[str] = Query(None, description="开始日期"),
     end_date: Optional[str] = Query(None, description="结束日期"),
@@ -42,16 +49,10 @@ async def get_history(
     """
     获取历史记录
     """
-    try:
-        logger.info(f"获取历史记录: {start_date} ~ {end_date}")
-        
-        history = await stats_service.get_history(start_date, end_date, page, pageSize)
-        
-        return ApiResponse(
-            success=True,
-            message="获取成功",
-            data=history
-        )
-    except Exception as e:
-        logger.error(f"获取历史记录失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    history = await stats_service.get_history(start_date, end_date, page, pageSize)
+    
+    return ApiResponse(
+        success=True,
+        message="获取成功",
+        data=history
+    )

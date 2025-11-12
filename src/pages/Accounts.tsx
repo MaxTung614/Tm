@@ -1,297 +1,318 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
+import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Gift, Lock, AlertCircle, CheckCircle2, QrCode, Smartphone, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
+import QRCodeLogin from '../components/auth/QRCodeLogin';
 import { 
-  Users, 
-  UserPlus, 
-  RefreshCw, 
-  CheckCircle2, 
-  Trash2,
-  AlertCircle,
-  Loader2,
-  ArrowRightLeft
-} from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+  logError, 
+  logWarning, 
+  logInfo,
+  ErrorCategory, 
+  getErrorMessage,
+  createUserFriendlyMessage,
+  generateErrorId
+} from '../lib/error-handler';
 
-interface Account {
-  account_id: string;
-  account_name: string;
-  login_time: string;
-  last_used: string;
-  status: string;
-  notes?: string;
-}
+export default function Login() {
+  const [cookieInput, setCookieInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-export default function Accounts() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [currentAccount, setCurrentAccount] = useState<Account | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [switchingId, setSwitchingId] = useState<string | null>(null);
+  const handleLogin = async () => {
+    // 表单验证
+    if (!cookieInput.trim()) {
+      logWarning('Login - Cookie输入为空', {
+        operation: 'cookie_login',
+        reason: 'empty_cookie_input'
+      });
+      
+      toast.error('请输入Cookie');
+      return;
+    }
 
-  useEffect(() => {
-    loadData();
-  }, []);
+    // 检查网络状态
+    if (!navigator.onLine) {
+      logWarning('Login - 网络连接已断开', {
+        operation: 'cookie_login',
+        networkStatus: 'offline'
+      });
+      
+      toast.error('网络连接已断开，请检查网络设置后重试');
+      return;
+    }
 
-  const loadData = async () => {
     setIsLoading(true);
     try {
-      const [accountsRes, currentRes] = await Promise.all([
-        fetch('http://localhost:8000/api/accounts/list'),
-        fetch('http://localhost:8000/api/accounts/current')
-      ]);
+      logInfo('Login - 开始Cookie登录', {
+        operation: 'cookie_login',
+        timestamp: new Date().toISOString()
+      });
 
-      const accountsData = await accountsRes.json();
-      const currentData = await currentRes.json();
+      await login(cookieInput);
+      
+      logInfo('Login - Cookie登录成功', {
+        operation: 'cookie_login',
+        success: true,
+        timestamp: new Date().toISOString()
+      });
 
-      if (accountsData.success) {
-        setAccounts(accountsData.data.accounts || []);
-      }
-
-      if (currentData.success && currentData.data) {
-        setCurrentAccount(currentData.data);
-      }
+      toast.success('登录成功！');
+      navigate('/');
     } catch (error: any) {
-      console.error('加载数据失败:', error);
-      toast.error('加载数据失败');
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'cookie_login',
+        component: 'Login',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      // 使用统一的错误处理生成用户友好提示
+      const errorCategory = error.message?.includes('NetworkError') || error.message?.includes('网络') ? ErrorCategory.NETWORK :
+                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
+                           error.message?.includes('timeout') ? ErrorCategory.NETWORK_TIMEOUT :
+                           ErrorCategory.AUTHENTICATION;
+      
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleLogin');
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
+  const handlePaste = async () => {
     try {
-      await loadData();
-      toast.success('刷新成功');
+      if (!navigator.clipboard) {
+        throw new Error('剪贴板API不可用');
+      }
+      
+      logInfo('Login - 开始从剪贴板粘贴Cookie', {
+        operation: 'paste_cookie'
+      });
+      
+      const text = await navigator.clipboard.readText();
+      setCookieInput(text);
+      
+      logInfo('Login - Cookie粘贴成功', {
+        operation: 'paste_cookie',
+        cookieLength: text.length
+      });
+      
+      toast.success('Cookie已粘贴');
     } catch (error: any) {
-      toast.error('刷新失败');
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  const handleSwitch = async (accountId: string) => {
-    setSwitchingId(accountId);
-    try {
-      const response = await fetch('http://localhost:8000/api/accounts/switch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ account_id: accountId })
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'paste_cookie',
+        component: 'Login',
+        errorId,
+        timestamp: new Date().toISOString()
       });
 
-      const data = await response.json();
+      const errorCategory = ErrorCategory.CLIPBOARD_ACCESS;
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handlePaste');
 
-      if (data.success) {
-        toast.success('切换账号成功');
-        await loadData();
-      } else {
-        throw new Error(data.message || '切换失败');
-      }
-    } catch (error: any) {
-      console.error('切换账号失败:', error);
-      toast.error(error.message || '切换账号失败');
-    } finally {
-      setSwitchingId(null);
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+      });
     }
   };
 
-  const handleDelete = async (accountId: string, accountName: string) => {
-    if (!confirm(`确定要删除账号"${accountName}"吗？`)) {
-      return;
-    }
-
+  const handleQRCodeSuccess = async (cookie: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/accounts/${accountId}`, {
-        method: 'DELETE'
+      // 检查网络状态
+      if (!navigator.onLine) {
+        logWarning('Login - QR码登录时网络连接已断开', {
+          operation: 'qrcode_login',
+          networkStatus: 'offline'
+        });
+        toast.error('网络连接已断开，请检查网络设置');
+        return;
+      }
+      
+      logInfo('Login - 开始QR码登录', {
+        operation: 'qrcode_login',
+        timestamp: new Date().toISOString()
       });
 
-      const data = await response.json();
+      await login(cookie);
+      
+      logInfo('Login - QR码登录成功', {
+        operation: 'qrcode_login',
+        success: true,
+        timestamp: new Date().toISOString()
+      });
 
-      if (data.success) {
-        toast.success('删除成功');
-        await loadData();
-      } else {
-        throw new Error(data.message || '删除失败');
-      }
+      toast.success('扫码登录成功！');
+      navigate('/');
     } catch (error: any) {
-      console.error('删除失败:', error);
-      toast.error(error.message || '删除失败');
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'qrcode_login',
+        component: 'Login',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      // 使用统一的错误处理生成用户友好提示
+      const errorCategory = error.message?.includes('NetworkError') || error.message?.includes('网络') ? ErrorCategory.NETWORK :
+                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
+                           error.message?.includes('timeout') ? ErrorCategory.NETWORK_TIMEOUT :
+                           ErrorCategory.AUTHENTICATION;
+      
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleQRCodeSuccess');
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+      });
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <Loader2 className="w-12 h-12 text-orange-500 animate-spin mx-auto" />
-          <p className="text-gray-600">加载中...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-6">
-      {/* 头部 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">👥 账号管理</h1>
-          <p className="text-sm text-gray-600 mt-1">管理多个账号，共享风控参数</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            variant="outline"
-            size="sm"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            刷新
-          </Button>
-        </div>
-      </div>
-
-      {/* 当前账号 */}
-      {currentAccount && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                <CardTitle className="text-base">当前使用的账号</CardTitle>
-              </div>
-              <Badge className="bg-green-600">活跃</Badge>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-red-50 p-4">
+      <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8 items-center">
+        {/* 左侧 - 品牌信息 */}
+        <div className="hidden md:flex flex-col space-y-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <Gift className="w-8 h-8 text-white" />
             </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">礼享金抢购助手</h1>
+              <p className="text-gray-600">高效、安全、便捷</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">自动化抢购</h3>
+                <p className="text-sm text-gray-600">毫秒级响应，抢购成功率提升10倍</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Lock className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">安全加密</h3>
+                <p className="text-sm text-gray-600">AES-256加密存储，保护您的账号安全</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <QrCode className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">扫码登录</h3>
+                <p className="text-sm text-gray-600">无需复制Cookie，扫码即可快速登录</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 右侧 - 登录表单 */}
+        <Card className="shadow-xl border-0">
+          <CardHeader>
+            <div className="md:hidden flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                <Gift className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <CardTitle>登录账号</CardTitle>
+            <CardDescription>
+              选择扫码登录或手动输入Cookie
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-900">{currentAccount.account_name}</span>
-                <span className="text-sm text-gray-500">ID: {currentAccount.account_id}</span>
-              </div>
-              <div className="text-sm text-gray-600">
-                登录时间: {currentAccount.login_time}
-              </div>
-              {currentAccount.notes && (
-                <div className="text-sm text-gray-600">
-                  备注: {currentAccount.notes}
+            <Tabs defaultValue="qrcode" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="qrcode" className="flex items-center space-x-2">
+                  <QrCode className="w-4 h-4" />
+                  <span>扫码登录</span>
+                </TabsTrigger>
+                <TabsTrigger value="cookie" className="flex items-center space-x-2">
+                  <Lock className="w-4 h-4" />
+                  <span>Cookie登录</span>
+                </TabsTrigger>
+              </TabsList>
+
+              {/* 扫码登录 */}
+              <TabsContent value="qrcode" className="space-y-4">
+                <QRCodeLogin onSuccess={handleQRCodeSuccess} />
+              </TabsContent>
+
+              {/* Cookie登录 */}
+              <TabsContent value="cookie" className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Cookie字符串
+                  </label>
+                  <Textarea
+                    value={cookieInput}
+                    onChange={(e) => setCookieInput(e.target.value)}
+                    placeholder="cookie2=xxx; _m_h5_tk=xxx; _tb_token_=xxx; ..."
+                    rows={6}
+                    className="font-mono text-xs"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePaste}
+                    className="w-full"
+                  >
+                    从剪贴板粘贴
+                  </Button>
                 </div>
-              )}
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start space-x-2">
+                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">如何获取Cookie？</p>
+                    <ol className="list-decimal list-inside space-y-1 text-xs">
+                      <li>使用Chrome浏览器打开淘宝</li>
+                      <li>按F12打开开发者工具</li>
+                      <li>切换到Network标签页</li>
+                      <li>刷新页面并复制请求中的Cookie</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleLogin}
+                  disabled={isLoading || !cookieInput.trim()}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                >
+                  {isLoading ? '登录中...' : '立即登录'}
+                </Button>
+              </TabsContent>
+            </Tabs>
+
+            <div className="text-xs text-center text-gray-500 mt-4">
+              登录即表示您同意我们的服务条款和隐私政策
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* 账号列表 */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>所有账号</CardTitle>
-              <CardDescription>点击切换按钮使用不同账号</CardDescription>
-            </div>
-            <Badge variant="secondary">{accounts.length} 个账号</Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {accounts.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">暂无账号</p>
-              <p className="text-sm text-gray-400">请先扫码登录添加账号</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {accounts.map(account => {
-                const isCurrent = currentAccount?.account_id === account.account_id;
-                const isSwitching = switchingId === account.account_id;
-
-                return (
-                  <Card
-                    key={account.account_id}
-                    className={`transition-all ${
-                      isCurrent
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'hover:shadow-md'
-                    }`}
-                  >
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <h3 className="font-medium text-gray-900">{account.account_name}</h3>
-                            {isCurrent && (
-                              <Badge className="bg-green-600 text-xs">当前</Badge>
-                            )}
-                            <Badge variant="secondary" className="text-xs">
-                              {account.status === 'active' ? '正常' : '异常'}
-                            </Badge>
-                          </div>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <div>ID: {account.account_id}</div>
-                            <div>登录: {account.login_time}</div>
-                            <div>最后使用: {account.last_used}</div>
-                            {account.notes && <div>备注: {account.notes}</div>}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {!isCurrent && (
-                            <Button
-                              onClick={() => handleSwitch(account.account_id)}
-                              disabled={isSwitching}
-                              size="sm"
-                              className="bg-orange-500 hover:bg-orange-600"
-                            >
-                              {isSwitching ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  切换中
-                                </>
-                              ) : (
-                                <>
-                                  <ArrowRightLeft className="w-4 h-4 mr-2" />
-                                  切换
-                                </>
-                              )}
-                            </Button>
-                          )}
-                          <Button
-                            onClick={() => handleDelete(account.account_id, account.account_name)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 说明卡片 */}
-      <Card className="border-blue-200 bg-blue-50">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center">
-            <AlertCircle className="w-5 h-5 mr-2 text-blue-600" />
-            重要说明
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-gray-700 space-y-2">
-          <div>✅ <strong>一套参数，多个账号：</strong>风控参数（ua、umidToken、asac）所有账号共享</div>
-          <div>✅ <strong>切换账号：</strong>只需切换 Cookie，风控参数自动使用</div>
-          <div>⚠️ <strong>设备一致：</strong>所有账号必须使用同一设备扫码登录</div>
-          <div>⚠️ <strong>Cookie 维护：</strong>Cookie 通常 1-7 天过期，需定期重新登录</div>
-          <div>📱 <strong>添加账号：</strong>前往登录页面，扫码后账号自动添加到此处</div>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }
