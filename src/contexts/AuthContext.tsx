@@ -40,6 +40,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      // 优先检查localStorage中的演示模式用户
+      const demoUser = localStorage.getItem('user');
+      if (demoUser) {
+        try {
+          const userData = JSON.parse(demoUser);
+          if (userData.id && userData.id.startsWith('demo_')) {
+            // 这是演示模式用户，直接使用
+            setUser(userData);
+            logInfo('Auth', '检测到演示模式用户，已自动登录');
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          // JSON解析失败，继续正常流程
+          logWarning('Auth', 'localStorage中的用户数据解析失败');
+        }
+      }
+      
+      // 检查真实用户的Cookie
       const savedCookie = secureCookieManager.getCookie();
       if (savedCookie) {
         logInfo('Auth', '检查存储的Cookie有效性');

@@ -5,6 +5,7 @@
 
 import { API_BASE_URL, API_TIMEOUT, API_RETRY_CONFIG } from './api-config';
 import { logError, logWarning, logInfo, ErrorCategory, ErrorLevel } from './error-handler';
+import { mockApi, checkBackendAvailable } from './api-mock';
 
 // 请求配置接口
 interface RequestConfig extends RequestInit {
@@ -48,6 +49,8 @@ interface RetryQueueItem {
 class ApiClient {
   private baseURL: string;
   private defaultTimeout: number;
+  private useMockData: boolean = false;
+  private backendCheckPromise: Promise<boolean> | null = null;
   
   // 待处理请求映射（用于请求去重和取消）
   private pendingRequests = new Map<string, AbortController>();
@@ -63,8 +66,46 @@ class ApiClient {
     this.baseURL = baseURL;
     this.defaultTimeout = timeout;
     
+    // 检查是否在演示模式或后端不可用
+    this.checkBackendStatus();
+    
     // 启动重试队列清理任务
     this.startRetryQueueCleanup();
+  }
+  
+  /**
+   * 检查后端状态
+   */
+  private async checkBackendStatus() {
+    // 如果在Figma预览环境，直接使用Mock
+    if (window.location.hostname.includes('figma')) {
+      this.useMockData = true;
+      logInfo('运行在演示模式，使用Mock数据', {
+        hostname: window.location.hostname,
+      });
+      return;
+    }
+    
+    // 避免重复检查
+    if (this.backendCheckPromise) {
+      return this.backendCheckPromise;
+    }
+    
+    this.backendCheckPromise = checkBackendAvailable().then(available => {
+      this.useMockData = !available;
+      if (this.useMockData) {
+        logWarning('后端服务不可用，切换到演示模式', {
+          baseURL: this.baseURL,
+        });
+      } else {
+        logInfo('后端服务可用', {
+          baseURL: this.baseURL,
+        });
+      }
+      return available;
+    });
+    
+    return this.backendCheckPromise;
   }
 
   /**
@@ -517,6 +558,14 @@ class ApiClient {
    * GET请求
    */
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+    // 先检查后端状态
+    await this.checkBackendStatus();
+    
+    // 如果使用Mock数据，尝试从mockApi获取
+    if (this.useMockData) {
+      return this.getMockResponse<T>(endpoint, 'GET', params);
+    }
+    
     return this.request<T>(endpoint, {
       method: 'GET',
       params,
@@ -527,6 +576,14 @@ class ApiClient {
    * POST请求
    */
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    // 先检查后端状态
+    await this.checkBackendStatus();
+    
+    // 如果使用Mock数据，尝试从mockApi获取
+    if (this.useMockData) {
+      return this.getMockResponse<T>(endpoint, 'POST', data);
+    }
+    
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
@@ -560,6 +617,126 @@ class ApiClient {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
     });
+  }
+
+  /**
+   * 获取Mock响应
+   */
+  private async getMockResponse<T>(endpoint: string, method: 'GET' | 'POST', data?: any): Promise<ApiResponse<T>> {
+    try {
+      // 解析端点路径
+      logInfo('使用Mock数据响应', {
+        endpoint,
+        method,
+        module: 'ApiClient'
+      });
+      
+      // 根据端点路由到对应的mock方法
+      if (endpoint.includes('/api/auth/qrcode/generate')) {
+        return await mockApi.auth.generateQRCode();
+      }
+      
+      if (endpoint.includes('/api/auth/qrcode/check')) {
+        return await mockApi.auth.checkQRCode(data?.qr_id || '');
+      }
+      
+      if (endpoint.includes('/api/auth/login')) {
+        return await mockApi.auth.login(data?.cookie || '');
+      }
+      
+      if (endpoint.includes('/api/auth/logout')) {
+        return await mockApi.auth.logout();
+      }
+      
+      if (endpoint.includes('/api/auth/user')) {
+        return await mockApi.auth.getUserInfo();
+      }
+      
+      if (endpoint.includes('/api/gifts/list')) {
+        return await mockApi.gifts.getList(data);
+      }
+      
+      if (endpoint.includes('/api/gifts/batch-grab')) {
+        return await mockApi.gifts.batchGrab(data?.gift_ids || []);
+      }
+      
+      if (endpoint.includes('/api/gifts/grab')) {
+        return await mockApi.gifts.grab(data?.gift_id || '');
+      }
+      
+      if (endpoint.includes('/api/stats/overview')) {
+        return await mockApi.stats.getOverview();
+      }
+      
+      if (endpoint.includes('/api/tasks/list')) {
+        return await mockApi.tasks.getList();
+      }
+      
+      if (endpoint.includes('/api/settings/get')) {
+        return await mockApi.settings.get();
+      }
+      
+      if (endpoint.includes('/api/settings/update')) {
+        return await mockApi.settings.update(data);
+      }
+      
+      if (endpoint.includes('/api/settings/cookie')) {
+        return await mockApi.settings.updateCookie(data?.cookie || '');
+      }
+      
+      if (endpoint.includes('/api/settings/export')) {
+        return await mockApi.settings.export();
+      }
+      
+      if (endpoint.includes('/api/monitor/list')) {
+        return await mockApi.monitor.getList();
+      }
+      
+      if (endpoint.includes('/api/monitor/performance')) {
+        return await mockApi.monitor.getPerformance();
+      }
+      
+      if (endpoint.includes('/api/monitor/start')) {
+        return await mockApi.monitor.start(data);
+      }
+      
+      if (endpoint.includes('/api/session-health/status')) {
+        return await mockApi.sessionHealth.getStatus();
+      }
+      
+      if (endpoint.includes('/api/session-health/start')) {
+        return await mockApi.sessionHealth.start(data);
+      }
+      
+      if (endpoint.includes('/api/session-health/stop')) {
+        return await mockApi.sessionHealth.stop();
+      }
+      
+      // 默认返回成功但无数据
+      logWarning('未找到对应的Mock端点', {
+        endpoint,
+        method,
+        module: 'ApiClient'
+      });
+      
+      return {
+        success: true,
+        data: {} as T,
+        message: '演示模式：此功能需要后端支持',
+      };
+    } catch (error: any) {
+      logError('ApiClient', `Mock数据获取失败: ${error.message}`, ErrorCategory.UNKNOWN, {
+        endpoint,
+        method,
+        error: error.message
+      });
+      
+      return {
+        success: false,
+        message: 'Mock数据加载失败',
+        error: error.message,
+      };
+    }
   }
 }
 

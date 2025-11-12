@@ -60,8 +60,10 @@ export const API_ENDPOINTS = {
   
   // 统计相关
   stats: {
+    overview: '/api/stats/overview',  // 统计概览
     dashboard: '/api/stats/dashboard',
     history: '/api/stats/history',
+    earnings: '/api/stats/earnings',  // 收益统计
   },
 };
 

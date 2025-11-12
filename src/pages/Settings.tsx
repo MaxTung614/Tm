@@ -38,33 +38,37 @@ interface Settings {
     grabSuccess: boolean;
     grabFailed: boolean;
     taskComplete: boolean;
+    lowBalance: boolean;
   };
-  autoRefresh: {
+  autoGrab: {
     enabled: boolean;
     interval: number;
+    maxRetry: number;
   };
-  advanced: {
-    maxRetries: number;
-    timeout: number;
+  performance: {
+    requestTimeout: number;
+    maxConcurrent: number;
   };
 }
 
 export default function Settings() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, logout } = useAuth();
   const [cookieInput, setCookieInput] = useState('');
   const [settings, setSettings] = useState<Settings>({
     notifications: {
       grabSuccess: true,
       grabFailed: true,
       taskComplete: true,
+      lowBalance: false,
     },
-    autoRefresh: {
-      enabled: true,
-      interval: 30,
+    autoGrab: {
+      enabled: false,
+      interval: 5,
+      maxRetry: 3,
     },
-    advanced: {
-      maxRetries: 3,
-      timeout: 10,
+    performance: {
+      requestTimeout: 30,
+      maxConcurrent: 5,
     },
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -497,6 +501,21 @@ export default function Settings() {
               }
             />
           </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium">余额低通知</div>
+              <div className="text-sm text-gray-600">余额低于设定值时推送通知</div>
+            </div>
+            <Switch 
+              checked={settings.notifications.lowBalance}
+              onCheckedChange={(checked) => 
+                setSettings({ ...settings, notifications: { ...settings.notifications, lowBalance: checked } })
+              }
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -518,12 +537,14 @@ export default function Settings() {
               <div className="text-sm text-gray-600">自动获取最新数据</div>
             </div>
             <Switch 
-              checked={settings.autoRefresh.enabled}
-              onCheckedChange={setSettings}
+              checked={settings.autoGrab.enabled}
+              onCheckedChange={(checked) => 
+                setSettings({ ...settings, autoGrab: { ...settings.autoGrab, enabled: checked } })
+              }
             />
           </div>
 
-          {settings.autoRefresh.enabled && (
+          {settings.autoGrab.enabled && (
             <>
               <Separator />
               <div>
@@ -531,8 +552,8 @@ export default function Settings() {
                 <Input
                   id="interval"
                   type="number"
-                  value={settings.autoRefresh.interval}
-                  onChange={(e) => setSettings({ ...settings, autoRefresh: { ...settings.autoRefresh, interval: parseInt(e.target.value) } })}
+                  value={settings.autoGrab.interval}
+                  onChange={(e) => setSettings({ ...settings, autoGrab: { ...settings.autoGrab, interval: parseInt(e.target.value) } })}
                   min="10"
                   max="300"
                   className="mt-2"

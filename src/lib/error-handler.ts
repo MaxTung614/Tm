@@ -244,7 +244,10 @@ export class FrontendErrorHandler {
 
     // 控制台输出
     const logMethod = this.getConsoleLogMethod(errorInfo.level);
-    logMethod(`[${errorInfo.category.toUpperCase()}] ${errorInfo.message}`, errorInfo);
+    const categoryStr = typeof errorInfo.category === 'string' 
+      ? errorInfo.category.toUpperCase() 
+      : String(errorInfo.category).toUpperCase();
+    logMethod(`[${categoryStr}] ${errorInfo.message}`, errorInfo);
 
     // 显示用户提示（仅对用户相关的错误）
     if (this.shouldShowUserNotification(errorInfo)) {

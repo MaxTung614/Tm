@@ -1,4 +1,20 @@
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { 
+  Loader2, 
+  RefreshCw, 
+  Zap, 
+  TrendingUp, 
+  Sparkles, 
+  Gift, 
+  Clock, 
+  CheckCircle2, 
+  AlertCircle 
+} from 'lucide-react';
 import { giftService, statService } from '../lib/api-services';
 import { 
   logError, 
@@ -72,6 +88,13 @@ export default function Dashboard() {
           giftIds: giftsResponse.data.gifts?.map(g => g.id) || []
         });
         setRedPackets(giftsResponse.data.gifts || []);
+      } else {
+        // 演示模式下，即使失败也不抛出错误
+        logWarning(`红包列表加载失败: ${giftsResponse.message || '未知错误'}`, {
+          operation: 'load_gifts',
+          demoMode: true
+        });
+        setRedPackets([]);
       }
 
       if (statsResponse.success && statsResponse.data) {
@@ -80,14 +103,19 @@ export default function Dashboard() {
           stats: statsResponse.data
         });
         setStats(statsResponse.data);
-      }
-
-      if (!giftsResponse.success) {
-        throw new Error(`获取红包列表失败: ${giftsResponse.message || '未知错误'}`);
-      }
-
-      if (!statsResponse.success) {
-        throw new Error(`获取统计数据失败: ${statsResponse.message || '未知错误'}`);
+      } else {
+        // 演示模式下，即使失败也不抛出错误
+        logWarning(`统计数据加载失败: ${statsResponse.message || '未知错误'}`, {
+          operation: 'load_stats',
+          demoMode: true
+        });
+        // 使用默认统计数据
+        setStats({
+          totalGrabbed: 0,
+          successRate: 0,
+          totalAmount: 0,
+          todayGrabbed: 0,
+        });
       }
 
       logInfo('仪表板数据加载完成');
@@ -401,7 +429,7 @@ export default function Dashboard() {
             });
           }
         } else {
-          toast.error(`���量抢购全部失败 (${failed} 个)，请稍后重试`, {
+          toast.error(`量抢购全部失败 (${failed} 个)，请稍后重试`, {
             duration: 5000,
           });
         }
