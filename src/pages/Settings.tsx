@@ -38,16 +38,14 @@ interface Settings {
     grabSuccess: boolean;
     grabFailed: boolean;
     taskComplete: boolean;
-    lowBalance: boolean;
   };
-  autoGrab: {
+  autoRefresh: {
     enabled: boolean;
     interval: number;
-    maxRetry: number;
   };
-  performance: {
-    requestTimeout: number;
-    maxConcurrent: number;
+  advanced: {
+    maxRetries: number;
+    timeout: number;
   };
 }
 
@@ -59,16 +57,14 @@ export default function Settings() {
       grabSuccess: true,
       grabFailed: true,
       taskComplete: true,
-      lowBalance: false,
     },
-    autoGrab: {
-      enabled: false,
-      interval: 5,
-      maxRetry: 3,
+    autoRefresh: {
+      enabled: true,
+      interval: 30,
     },
-    performance: {
-      requestTimeout: 30,
-      maxConcurrent: 5,
+    advanced: {
+      maxRetries: 3,
+      timeout: 10,
     },
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -98,7 +94,22 @@ export default function Settings() {
       const response = await settingsService.getSettings();
       
       if (response.success && response.data) {
-        setSettings(response.data);
+        // 合并服务器返回的设置和默认设置
+        setSettings({
+          notifications: response.data.notifications || {
+            grabSuccess: true,
+            grabFailed: true,
+            taskComplete: true,
+          },
+          autoRefresh: response.data.autoRefresh || {
+            enabled: true,
+            interval: 30,
+          },
+          advanced: response.data.advanced || {
+            maxRetries: 3,
+            timeout: 10,
+          },
+        });
         logInfo(`[${functionName}] 设置加载成功`, { 
           hasNotifications: !!response.data.notifications,
           hasAutoRefresh: !!response.data.autoRefresh,
@@ -134,7 +145,7 @@ export default function Settings() {
         errorId 
       });
       
-      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId);
       toast.error(userMessage);
     } finally {
       setIsLoading(false);
@@ -200,7 +211,7 @@ export default function Settings() {
         errorId 
       });
       
-      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId);
       toast.error(userMessage);
     } finally {
       setIsSaving(false);
@@ -283,7 +294,7 @@ export default function Settings() {
         errorId 
       });
       
-      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId);
       toast.error(userMessage);
     } finally {
       setIsUpdatingCookie(false);
@@ -361,7 +372,7 @@ export default function Settings() {
         errorId 
       });
       
-      const userMessage = createUserFriendlyMessage(errorCategory, errorMessage, errorId);
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId);
       toast.error(userMessage);
     } finally {
       setIsExporting(false);
@@ -501,21 +512,6 @@ export default function Settings() {
               }
             />
           </div>
-
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium">余额低通知</div>
-              <div className="text-sm text-gray-600">余额低于设定值时推送通知</div>
-            </div>
-            <Switch 
-              checked={settings.notifications.lowBalance}
-              onCheckedChange={(checked) => 
-                setSettings({ ...settings, notifications: { ...settings.notifications, lowBalance: checked } })
-              }
-            />
-          </div>
         </CardContent>
       </Card>
 
@@ -537,14 +533,14 @@ export default function Settings() {
               <div className="text-sm text-gray-600">自动获取最新数据</div>
             </div>
             <Switch 
-              checked={settings.autoGrab.enabled}
+              checked={settings.autoRefresh.enabled}
               onCheckedChange={(checked) => 
-                setSettings({ ...settings, autoGrab: { ...settings.autoGrab, enabled: checked } })
+                setSettings({ ...settings, autoRefresh: { ...settings.autoRefresh, enabled: checked } })
               }
             />
           </div>
 
-          {settings.autoGrab.enabled && (
+          {settings.autoRefresh.enabled && (
             <>
               <Separator />
               <div>
@@ -552,8 +548,11 @@ export default function Settings() {
                 <Input
                   id="interval"
                   type="number"
-                  value={settings.autoGrab.interval}
-                  onChange={(e) => setSettings({ ...settings, autoGrab: { ...settings.autoGrab, interval: parseInt(e.target.value) } })}
+                  value={settings.autoRefresh.interval}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 30;
+                    setSettings({ ...settings, autoRefresh: { ...settings.autoRefresh, interval: value } });
+                  }}
                   min="10"
                   max="300"
                   className="mt-2"

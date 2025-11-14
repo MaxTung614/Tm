@@ -383,6 +383,93 @@ export default function Tasks() {
     }
   };
 
+  // 启动任务
+  const handleStartTask = async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    const taskName = task?.name || '未知任务';
+    
+    // 检查网络状态
+    if (!navigator.onLine) {
+      logError('网络连接已断开，无法启动任务', {
+        operation: 'start_task',
+        taskId,
+        taskName,
+        networkStatus: 'offline'
+      });
+
+      toast.error('网络连接已断开，请检查网络设置后重试', {
+        duration: 5000,
+      });
+      return;
+    }
+
+    setActioningIds(prev => new Set(prev).add(taskId));
+    
+    try {
+      logInfo(`开始启动任务: ${taskName}`, {
+        operation: 'start_task',
+        taskId,
+        taskName,
+        timestamp: new Date().toISOString()
+      });
+
+      toast.loading('正在启动任务...', { id: `start-task-${taskId}` });
+
+      const response = await taskService.toggleTask(taskId, true);
+      
+      if (response.success) {
+        logInfo(`任务启动成功: ${taskName}`, {
+          operation: 'start_task',
+          taskId,
+          taskName,
+          success: true
+        });
+
+        toast.success('任务已启动', {
+          description: `${taskName} 正在运行中`,
+          duration: 4000,
+          id: `start-task-${taskId}`
+        });
+
+        await loadTasks();
+
+      } else {
+        throw new Error(response.message || '启动任务失败');
+      }
+
+    } catch (error: any) {
+      const errorId = generateErrorId();
+      
+      logError(error, {
+        operation: 'start_task',
+        taskId,
+        taskName,
+        component: 'Tasks',
+        errorId,
+        timestamp: new Date().toISOString()
+      });
+
+      const errorCategory = error.message?.includes('timeout') ? ErrorCategory.NETWORK_TIMEOUT :
+                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
+                           ErrorCategory.UNKNOWN;
+      
+      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleStartTask');
+
+      toast.error(userMessage, {
+        description: `错误ID: ${errorId}`,
+        duration: 5000,
+        id: `start-task-${taskId}`
+      });
+
+    } finally {
+      setActioningIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(taskId);
+        return newSet;
+      });
+    }
+  };
+
   // 停止任务
   const handleStopTask = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
@@ -576,7 +663,9 @@ export default function Tasks() {
       failed: { variant: 'destructive' as const, icon: XCircle, text: '失败' },
     };
 
-    const { variant, icon: Icon, text } = config[status];
+    // 防御性代码：如果状态不在配置中，使用默认值
+    const statusConfig = config[status] || { variant: 'secondary' as const, icon: AlertCircle, text: status };
+    const { variant, icon: Icon, text } = statusConfig;
     
     return (
       <Badge variant={variant} className="flex items-center gap-1">

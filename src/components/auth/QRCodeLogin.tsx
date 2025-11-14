@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { RefreshCw, Smartphone, CheckCircle2, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '../../lib/api-services';
+import QRCode from 'qrcode';
 
 interface QRCodeLoginProps {
   onSuccess: (cookie: string) => void;
@@ -11,6 +12,7 @@ interface QRCodeLoginProps {
 type QRCodeStatus = 'loading' | 'ready' | 'scanned' | 'confirmed' | 'expired' | 'error';
 
 export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [qrCodeId, setQrCodeId] = useState<string>('');
   const [status, setStatus] = useState<QRCodeStatus>('loading');
@@ -26,21 +28,34 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
     setErrorMessage('');
     
     try {
-      // 调用真实后端API生成二维码
+      // 调用后端API生成二维码URL
       const response = await authService.generateQRCode();
       
       if (response.success && response.data) {
-        setQrCodeUrl(response.data.qrCodeUrl);
-        setQrCodeId(response.data.qrCodeId);
+        const { qrCodeUrl: url, qrCodeId: id } = response.data;
+        
+        // 使用 qrcode 库将 URL 转换为二维码图片
+        const qrDataUrl = await QRCode.toDataURL(url, {
+          width: 256,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
+        
+        setQrCodeDataUrl(qrDataUrl);
+        setQrCodeUrl(url);
+        setQrCodeId(id);
         setStatus('ready');
         
         // 开始轮询检查扫码状态
-        startPolling(response.data.qrCodeId);
+        startPolling(id);
         
         // 开始倒计时
         startCountdown();
         
-        toast.success('二维码已生成，请使用淘宝App扫码');
+        toast.success('二维码已生成，请使用手机淘宝扫码登录');
       } else {
         throw new Error(response.message || '生成二维码失败');
       }
@@ -61,8 +76,14 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
         // 调用真实后端API检查扫码状态
         const response = await authService.checkQRCode(qrId);
         
+        // 🔍 调试日志：打印完整响应
+        console.log('[前端] 检查状态响应:', JSON.stringify(response, null, 2));
+        
         if (response.success && response.data) {
           const { status: qrStatus, cookie } = response.data;
+          
+          // 🔍 调试日志：打印当前状态
+          console.log('[前端] 当前状态:', qrStatus, '| Cookie长度:', cookie?.length || 0);
           
           if (qrStatus === 'scanned') {
             setStatus('scanned');
@@ -82,6 +103,7 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
             stopCountdown();
             toast.error('二维码已过期');
           }
+          // 如果是 waiting，不做任何操作，继续轮询
         }
       } catch (error: any) {
         console.error('轮询检查失败:', error);
@@ -161,9 +183,9 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
             </div>
           )}
 
-          {(status === 'ready' || status === 'scanned') && qrCodeUrl && (
+          {(status === 'ready' || status === 'scanned') && qrCodeDataUrl && (
             <img 
-              src={qrCodeUrl} 
+              src={qrCodeDataUrl} 
               alt="登录二维码" 
               className="w-full h-full object-contain p-4"
             />
@@ -260,13 +282,14 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
       {/* 使用说明 */}
       {(status === 'ready' || status === 'scanned') && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 w-full">
-          <div className="text-sm text-blue-800 space-y-1">
-            <p className="font-medium">扫码步骤：</p>
+          <div className="text-sm text-blue-800 space-y-2">
+            <p className="font-medium">📱 扫码登录步骤：</p>
             <ol className="list-decimal list-inside space-y-1 text-xs">
-              <li>打开手机淘宝App</li>
-              <li>点击首页右上角扫一扫</li>
+              <li>打开手机淘宝 App</li>
+              <li>点击首页右上角"扫一扫"</li>
               <li>扫描上方二维码</li>
               <li>在手机上确认登录</li>
+              <li>系统将自动获取您的账号信息</li>
             </ol>
           </div>
         </div>
@@ -274,7 +297,7 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
 
       {/* 提示信息 */}
       <div className="text-xs text-gray-500 text-center">
-        扫码登录更安全，无需手动复制Cookie
+        基于 TSDK 开源方案实现，安全可靠
       </div>
     </div>
   );

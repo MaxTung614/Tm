@@ -1,379 +1,132 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
-import { Textarea } from '../components/ui/textarea';
+import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Gift, Lock, AlertCircle, CheckCircle2, QrCode, Smartphone, RefreshCw } from 'lucide-react';
+import { Gift, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
-import QRCodeLogin from '../components/auth/QRCodeLogin';
-import DemoModeLogin from '../components/auth/DemoModeLogin';
-import { 
-  logError, 
-  logWarning, 
-  logInfo,
-  ErrorCategory, 
-  getErrorMessage,
-  createUserFriendlyMessage,
-  generateErrorId
-} from '../lib/error-handler';
-import { checkBackendAvailable } from '../lib/api-mock';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
-  const [cookieInput, setCookieInput] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [backendAvailable, setBackendAvailable] = useState<boolean | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // 检查后端可用性
-  useEffect(() => {
-    const checkBackend = async () => {
-      const available = await checkBackendAvailable();
-      setBackendAvailable(available);
-      
-      if (!available) {
-        logWarning('后端服务不可用，进入演示模式', {
-          operation: 'check_backend',
-          component: 'Login',
-        });
-      } else {
-        logInfo('后端服务可用', {
-          operation: 'check_backend',
-          component: 'Login',
-        });
-      }
-    };
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    checkBackend();
-  }, []);
-
-  const handleDemoLogin = (userData: any) => {
-    // 演示模式下直接保存到localStorage，然后跳转
-    // 不使用 AuthContext 因为它需要后端API
-    logInfo('进入演示模式登录', {
-      operation: 'demo_login',
-      component: 'Login',
-      userId: userData.id,
-    });
+    // 检查 Supabase 是否配置
+    if (!supabase) {
+      toast.error('Supabase 未配置，请先配置环境变量');
+      return;
+    }
     
-    // 直接跳转到首页，让AuthContext从localStorage读取
-    navigate('/');
-  };
-
-  const handleLogin = async () => {
-    // 表单验证
-    if (!cookieInput.trim()) {
-      logWarning('Login - Cookie输入为空', {
-        operation: 'cookie_login',
-        reason: 'empty_cookie_input'
-      });
-      
-      toast.error('请输入Cookie');
+    if (!email.trim() || !password.trim()) {
+      toast.error('请输入邮箱和密码');
       return;
     }
 
-    // 检查网络状态
-    if (!navigator.onLine) {
-      logWarning('Login - 网络连接已断开', {
-        operation: 'cookie_login',
-        networkStatus: 'offline'
-      });
-      
-      toast.error('网络连接已断开，请检查网络设置后重试');
+    // 简单的邮箱格式验证
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('请输入有效的邮箱地址');
       return;
     }
 
     setIsLoading(true);
     try {
-      logInfo('Login - 开始Cookie登录', {
-        operation: 'cookie_login',
-        timestamp: new Date().toISOString()
-      });
-
-      await login(cookieInput);
+      const success = await login(email, password);
       
-      logInfo('Login - Cookie登录成功', {
-        operation: 'cookie_login',
-        success: true,
-        timestamp: new Date().toISOString()
-      });
-
-      toast.success('登录成功！');
-      navigate('/');
+      if (success) {
+        toast.success('登录成功！');
+        navigate('/');
+      } else {
+        toast.error('邮箱或密码错误，请检查后重试');
+      }
     } catch (error: any) {
-      const errorId = generateErrorId();
-      
-      logError(error, {
-        operation: 'cookie_login',
-        component: 'Login',
-        errorId,
-        timestamp: new Date().toISOString()
-      });
-
-      // 使用统一的错误处理生成用户友好提示
-      const errorCategory = error.message?.includes('NetworkError') || error.message?.includes('网络') ? ErrorCategory.NETWORK :
-                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
-                           error.message?.includes('timeout') ? ErrorCategory.NETWORK_TIMEOUT :
-                           ErrorCategory.AUTHENTICATION;
-      
-      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleLogin');
-
-      toast.error(userMessage, {
-        description: `错误ID: ${errorId}`,
-        duration: 5000,
-      });
+      console.error('登录错误:', error);
+      toast.error(error.message || '登录失败，请重试');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePaste = async () => {
-    try {
-      if (!navigator.clipboard) {
-        throw new Error('剪贴板API不可用');
-      }
-      
-      logInfo('Login - 开始从剪贴板粘贴Cookie', {
-        operation: 'paste_cookie'
-      });
-      
-      const text = await navigator.clipboard.readText();
-      setCookieInput(text);
-      
-      logInfo('Login - Cookie粘贴成功', {
-        operation: 'paste_cookie',
-        cookieLength: text.length
-      });
-      
-      toast.success('Cookie已粘贴');
-    } catch (error: any) {
-      const errorId = generateErrorId();
-      
-      logError(error, {
-        operation: 'paste_cookie',
-        component: 'Login',
-        errorId,
-        timestamp: new Date().toISOString()
-      });
-
-      const errorCategory = ErrorCategory.CLIPBOARD_ACCESS;
-      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handlePaste');
-
-      toast.error(userMessage, {
-        description: `错误ID: ${errorId}`,
-        duration: 5000,
-      });
-    }
-  };
-
-  const handleQRCodeSuccess = async (cookie: string) => {
-    try {
-      // 检查网络状态
-      if (!navigator.onLine) {
-        logWarning('Login - QR码登录时网络连接已断开', {
-          operation: 'qrcode_login',
-          networkStatus: 'offline'
-        });
-        toast.error('网络连接已断开，请检查网络设置');
-        return;
-      }
-      
-      logInfo('Login - 开始QR码登录', {
-        operation: 'qrcode_login',
-        timestamp: new Date().toISOString()
-      });
-
-      await login(cookie);
-      
-      logInfo('Login - QR码登录成功', {
-        operation: 'qrcode_login',
-        success: true,
-        timestamp: new Date().toISOString()
-      });
-
-      toast.success('扫码登录成功！');
-      navigate('/');
-    } catch (error: any) {
-      const errorId = generateErrorId();
-      
-      logError(error, {
-        operation: 'qrcode_login',
-        component: 'Login',
-        errorId,
-        timestamp: new Date().toISOString()
-      });
-
-      // 使用统一的错误处理生成用户友好提示
-      const errorCategory = error.message?.includes('NetworkError') || error.message?.includes('网络') ? ErrorCategory.NETWORK :
-                           error.message?.includes('401') ? ErrorCategory.AUTHENTICATION :
-                           error.message?.includes('timeout') ? ErrorCategory.NETWORK_TIMEOUT :
-                           ErrorCategory.AUTHENTICATION;
-      
-      const userMessage = createUserFriendlyMessage(error, errorCategory, errorId, 'handleQRCodeSuccess');
-
-      toast.error(userMessage, {
-        description: `错误ID: ${errorId}`,
-        duration: 5000,
-      });
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-red-50 p-4">
-      <div className="w-full max-w-4xl">
-        {/* 后端服务状态检测 */}
-        {backendAvailable === false && (
-          <div className="mb-6">
-            <DemoModeLogin onLogin={handleDemoLogin} />
-          </div>
-        )}
-        
-        {/* 正在检测后端状态 */}
-        {backendAvailable === null && (
-          <Card className="w-full max-w-md mx-auto">
-            <CardContent className="py-8">
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                <p className="text-gray-600">正在检测后端服务...</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* 后端可用时显示正常登录 */}
-        {backendAvailable === true && (
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            {/* 左侧 - 品牌信息 */}
-            <div className="hidden md:flex flex-col space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Gift className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">礼享金抢购助手</h1>
-                  <p className="text-gray-600">高效、安全、便捷</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <CheckCircle2 className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">自动化抢购</h3>
-                    <p className="text-sm text-gray-600">毫秒级响应，抢购成功率提升10倍</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lock className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">安全加密</h3>
-                    <p className="text-sm text-gray-600">AES-256加密存储，保护您的账号安全</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <QrCode className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">扫码登录</h3>
-                    <p className="text-sm text-gray-600">无需复制Cookie，扫码即可快速登录</p>
-                  </div>
-                </div>
+      <div className="w-full max-w-md">
+        <Card className="shadow-xl border-0">
+          <CardHeader className="space-y-4">
+            <div className="flex items-center justify-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Gift className="w-8 h-8 text-white" />
               </div>
             </div>
-
-            {/* 右侧 - 登录表单 */}
-            <Card className="shadow-xl border-0">
-              <CardHeader>
-                <div className="md:hidden flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                    <Gift className="w-6 h-6 text-white" />
-                  </div>
+            <div className="text-center">
+              <CardTitle>礼享金抢购助手</CardTitle>
+              <CardDescription>
+                使用 Supabase 账号登录
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm">邮箱</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your-email@example.com"
+                    className="pl-10"
+                    autoComplete="email"
+                  />
                 </div>
-                <CardTitle>登录账号</CardTitle>
-                <CardDescription>
-                  选择扫码登录或手动输入Cookie
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="qrcode" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="qrcode" className="flex items-center space-x-2">
-                      <QrCode className="w-4 h-4" />
-                      <span>扫码登录</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="cookie" className="flex items-center space-x-2">
-                      <Lock className="w-4 h-4" />
-                      <span>Cookie登录</span>
-                    </TabsTrigger>
-                  </TabsList>
+              </div>
 
-                  {/* 扫码登录 */}
-                  <TabsContent value="qrcode" className="space-y-4">
-                    <QRCodeLogin onSuccess={handleQRCodeSuccess} />
-                  </TabsContent>
-
-                  {/* Cookie登录 */}
-                  <TabsContent value="cookie" className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        Cookie字符串
-                      </label>
-                      <Textarea
-                        value={cookieInput}
-                        onChange={(e) => setCookieInput(e.target.value)}
-                        placeholder="cookie2=xxx; _m_h5_tk=xxx; _tb_token_=xxx; ..."
-                        rows={6}
-                        className="font-mono text-xs"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handlePaste}
-                        className="w-full"
-                      >
-                        从剪贴板粘贴
-                      </Button>
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start space-x-2">
-                      <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <div className="text-sm text-blue-800">
-                        <p className="font-medium mb-1">如何获取Cookie？</p>
-                        <ol className="list-decimal list-inside space-y-1 text-xs">
-                          <li>使用Chrome浏览器打开淘宝</li>
-                          <li>按F12打开开发者工具</li>
-                          <li>切换到Network标签页</li>
-                          <li>刷新页面并复制请求中的Cookie</li>
-                        </ol>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={handleLogin}
-                      disabled={isLoading || !cookieInput.trim()}
-                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-                    >
-                      {isLoading ? '登录中...' : '立即登录'}
-                    </Button>
-                  </TabsContent>
-                </Tabs>
-
-                <div className="text-xs text-center text-gray-500 mt-4">
-                  登录即表示您同意我们的服务条款和隐私政策
+              <div className="space-y-2">
+                <label className="text-sm">密码</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="输入密码"
+                    className="pl-10"
+                    autoComplete="current-password"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                <p className="font-medium mb-1">📝 如何创建账号：</p>
+                <ol className="list-decimal list-inside space-y-1 text-xs">
+                  <li>访问 Supabase Dashboard</li>
+                  <li>Authentication → Users → Add User</li>
+                  <li>输入邮箱和密码，勾选 Auto Confirm</li>
+                  <li>使用该邮箱密码登录</li>
+                </ol>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+              >
+                {isLoading ? '登录中...' : '立即登录'}
+              </Button>
+            </form>
+
+            <div className="text-xs text-center text-muted-foreground mt-4">
+              登录即表示您同意我们的服务条款和隐私政策
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

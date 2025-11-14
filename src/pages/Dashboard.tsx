@@ -1,45 +1,33 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { 
-  Loader2, 
-  RefreshCw, 
-  Zap, 
-  TrendingUp, 
-  Sparkles, 
-  Gift, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle 
-} from 'lucide-react';
 import { giftService, statService } from '../lib/api-services';
 import { 
   logError, 
   logWarning, 
-  logInfo, 
-  ErrorCategory, 
-  ErrorLevel,
-  errorHandler,
-  createUserFriendlyMessage,
+  logInfo,
+  ErrorCategory,
   generateErrorId,
-  getErrorMessage
+  createUserFriendlyMessage
 } from '../lib/error-handler';
-import { safeFetch } from '../lib/network-interceptor';
-
-interface RedPacket {
-  id: string;
-  benefitCode: string;
-  name: string;
-  amount: string;
-  coinCost: number;
-  type: 'redPacket';  // 只保留红包类型
-  status: 'available' | 'claimed' | 'expired';
-  expireTime?: string;
-  description?: string;
-}
+import { filterTargetRedPackets, sortRedPacketsByPriority } from '../lib/constants';
+import type { FrontendRedPacket } from '../lib/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { SupabaseConnectionStatus } from '../components/SupabaseConnectionStatus';
+import { toast } from 'sonner';
+import { 
+  Gift, 
+  TrendingUp, 
+  Target, 
+  Zap, 
+  RefreshCw, 
+  Loader2, 
+  AlertCircle, 
+  CheckCircle2, 
+  Clock,
+  Sparkles
+} from 'lucide-react';
 
 interface DashboardStats {
   totalGrabbed: number;
@@ -50,7 +38,7 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();
-  const [redPackets, setRedPackets] = useState<RedPacket[]>([]);
+  const [redPackets, setRedPackets] = useState<FrontendRedPacket[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalGrabbed: 0,
     successRate: 0,
@@ -76,7 +64,7 @@ export default function Dashboard() {
 
       // 并发请求红包列表和统计数据，只获取红包类型
       const [giftsResponse, statsResponse] = await Promise.all([
-        giftService.getGiftList({ status: 'available', type: 'redPacket' }),  // 只获取红包
+        giftService.getAllGifts(),  // 获取所有红包
         statService.getStatsOverview(),
       ]);
 
@@ -87,14 +75,19 @@ export default function Dashboard() {
           giftCount,
           giftIds: giftsResponse.data.gifts?.map(g => g.id) || []
         });
-        setRedPackets(giftsResponse.data.gifts || []);
-      } else {
-        // 演示模式下，即使失败也不抛出错误
-        logWarning(`红包列表加载失败: ${giftsResponse.message || '未知错误'}`, {
-          operation: 'load_gifts',
-          demoMode: true
+        
+        // 过滤出指定的11个红包
+        const allGifts = giftsResponse.data.gifts || [];
+        const filteredGifts = filterTargetRedPackets(allGifts);
+        
+        logInfo(`过滤后保留 ${filteredGifts.length} 个指定红包`, {
+          operation: 'filter_gifts',
+          originalCount: allGifts.length,
+          filteredCount: filteredGifts.length,
+          filteredBenefitCodes: filteredGifts.map(g => g.benefitCode)
         });
-        setRedPackets([]);
+        
+        setRedPackets(filteredGifts);
       }
 
       if (statsResponse.success && statsResponse.data) {
@@ -103,19 +96,14 @@ export default function Dashboard() {
           stats: statsResponse.data
         });
         setStats(statsResponse.data);
-      } else {
-        // 演示模式下，即使失败也不抛出错误
-        logWarning(`统计数据加载失败: ${statsResponse.message || '未知错误'}`, {
-          operation: 'load_stats',
-          demoMode: true
-        });
-        // 使用默认统计数据
-        setStats({
-          totalGrabbed: 0,
-          successRate: 0,
-          totalAmount: 0,
-          todayGrabbed: 0,
-        });
+      }
+
+      if (!giftsResponse.success) {
+        throw new Error(`获取红包列表失败: ${giftsResponse.message || '未知错误'}`);
+      }
+
+      if (!statsResponse.success) {
+        throw new Error(`获取统计数据失败: ${statsResponse.message || '未知错误'}`);
       }
 
       logInfo('仪表板数据加载完成');
@@ -164,7 +152,7 @@ export default function Dashboard() {
         timestamp: new Date().toISOString()
       });
 
-      const response = await giftService.getGiftList({ status: 'available', type: 'redPacket' });  // 只获取红包
+      const response = await giftService.getAllGifts();  // 获取所有红包
       
       if (response.success && response.data) {
         const newGiftCount = response.data.gifts?.length || 0;
@@ -177,13 +165,23 @@ export default function Dashboard() {
           changes: newGiftCount - oldGiftCount
         });
 
-        setRedPackets(response.data.gifts || []);
+        // 过滤出指定的11个红包
+        const allGifts = response.data.gifts || [];
+        const filteredGifts = filterTargetRedPackets(allGifts);
+        
+        logInfo(`刷新后过滤保留 ${filteredGifts.length} 个指定红包`, {
+          operation: 'filter_refresh_gifts',
+          originalCount: allGifts.length,
+          filteredCount: filteredGifts.length
+        });
+
+        setRedPackets(filteredGifts);
         
         // 显示差异提示
-        const changeText = newGiftCount > oldGiftCount 
-          ? `新增 ${newGiftCount - oldGiftCount} 个红包` 
-          : newGiftCount < oldGiftCount 
-          ? `减少 ${oldGiftCount - newGiftCount} 个红包`
+        const changeText = filteredGifts.length > oldGiftCount 
+          ? `新增 ${filteredGifts.length - oldGiftCount} 个红包` 
+          : filteredGifts.length < oldGiftCount 
+          ? `减少 ${oldGiftCount - filteredGifts.length} 个红包`
           : '红包数量无变化';
           
         toast.success(`刷新成功！${changeText}`, {
@@ -223,7 +221,7 @@ export default function Dashboard() {
   };
 
   // 抢购单个红包
-  const handleClaim = async (packet: RedPacket) => {
+  const handleClaim = async (packet: FrontendRedPacket) => {
     if (claimingIds.has(packet.id)) {
       logWarning('红包正在抢购中，忽略重复请求', {
         operation: 'claim_gift',
@@ -491,6 +489,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Supabase 连接状态 */}
+      <SupabaseConnectionStatus />
+
       {/* 头部 */}
       <div className="flex items-center justify-between">
         <div>
@@ -549,7 +550,7 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>总金额</CardDescription>
+            <CardDescription>礼享金</CardDescription>
             <CardTitle className="text-3xl">¥{stats.totalAmount}</CardTitle>
           </CardHeader>
           <CardContent>
@@ -594,7 +595,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {redPackets.map(packet => (
+              {sortRedPacketsByPriority(redPackets).map(packet => (
                 <Card
                   key={packet.id}
                   className={`relative overflow-hidden transition-all ${
