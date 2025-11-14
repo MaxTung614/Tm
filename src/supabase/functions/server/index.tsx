@@ -34,57 +34,75 @@ app.get("/make-server-c6898dcb/health", (c) => {
 async function initLoginBefore() {
   console.log("[QR] 初始化登录前置数据");
   
-  const res = await fetch(
-    `https://login.taobao.com/havanaone/login/login.htm?bizName=taobao&f=top&redirectURL=${encodeURIComponent("https://www.taobao.com")}`,
-    {
-      method: "GET",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Referer: "https://www.taobao.com/",
-      },
-    },
-  );
-
-  if (!res.ok) {
-    throw new Error("初始化 Cookie 失败");
-  }
-
-  const html = await res.text();
-  
-  // 提取 viewData 中的 _csrf 和 umidToken
-  const viewDataMatch = html.match(/viewData\s*=\s*(\{.*?\});/s);
-  if (!viewDataMatch) {
-    console.log("[QR] 未找到 viewData，尝试其他方式提取");
-    // 尝试直接提取
-    const csrfMatch = html.match(/"_csrf"\s*:\s*"([^"]+)"/);
-    const umidTokenMatch = html.match(/"umidToken"\s*:\s*"([^"]+)"/);
-    
-    return {
-      csrf: csrfMatch ? csrfMatch[1] : "",
-      umidToken: umidTokenMatch ? umidTokenMatch[1] : "",
-    };
-  }
-
   try {
+    const res = await fetch(
+      `https://login.taobao.com/havanaone/login/login.htm?bizName=taobao&f=top&redirectURL=${encodeURIComponent("https://www.taobao.com")}`,
+      {
+        method: "GET",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Referer: "https://www.taobao.com/",
+        },
+      },
+    );
+
+    console.log(`[QR] 初始化请求状态: ${res.status}`);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[QR] 初始化失败: HTTP ${res.status}`, errorText.substring(0, 500));
+      throw new Error(`初始化请求失败: HTTP ${res.status}`);
+    }
+
+    const html = await res.text();
+    console.log(`[QR] 获取到 HTML，长度: ${html.length}`);
+    
+    // 提取 viewData 中的 _csrf 和 umidToken
+    const viewDataMatch = html.match(/viewData\s*=\s*(\{.*?\});/s);
+    if (!viewDataMatch) {
+      console.log("[QR] 未找到 viewData，尝试其他方式提取");
+      
+      // 尝试直接提取
+      const csrfMatch = html.match(/"_csrf"\s*:\s*"([^"]+)"/);
+      const umidTokenMatch = html.match(/"umidToken"\s*:\s*"([^"]+)"/);
+      
+      console.log(`[QR] 直接提取结果 - csrf: ${csrfMatch ? '找到' : '未找到'}, umidToken: ${umidTokenMatch ? '找到' : '未找到'}`);
+      
+      if (!csrfMatch || !umidTokenMatch) {
+        // 保存 HTML 片段用于调试
+        console.error("[QR] HTML 预览（前 1000 字符）:", html.substring(0, 1000));
+        throw new Error("无法从页面提取 CSRF Token 和 umidToken，淘宝页面可能已更新");
+      }
+      
+      return {
+        csrf: csrfMatch[1],
+        umidToken: umidTokenMatch[1],
+      };
+    }
+
     const viewDataStr = viewDataMatch[1];
+    console.log(`[QR] 找到 viewData，长度: ${viewDataStr.length}`);
+    
     const viewData = JSON.parse(viewDataStr);
     const loginForm = viewData.loginFormData || {};
+    
+    if (!loginForm._csrf || !loginForm.umidToken) {
+      console.error("[QR] loginFormData 缺少必需字段:", loginForm);
+      throw new Error("loginFormData 中缺少 CSRF Token 或 umidToken");
+    }
     
     console.log(
       `[QR] 提取成功 - csrf: ${loginForm._csrf?.substring(0, 10)}..., umidToken: ${loginForm.umidToken?.substring(0, 10)}...`,
     );
     
     return {
-      csrf: loginForm._csrf || "",
-      umidToken: loginForm.umidToken || "",
+      csrf: loginForm._csrf,
+      umidToken: loginForm.umidToken,
     };
-  } catch (err) {
-    console.error("[QR] 解析 viewData 失败:", err);
-    return {
-      csrf: "",
-      umidToken: "",
-    };
+  } catch (err: any) {
+    console.error("[QR] initLoginBefore 异常:", err.message);
+    throw err;
   }
 }
 
