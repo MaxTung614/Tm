@@ -6,7 +6,7 @@ import { authService } from '../../lib/api-services';
 import QRCode from 'qrcode';
 
 interface QRCodeLoginProps {
-  onSuccess: (cookie: string) => void;
+  onSuccess: (cookie: string, username: string) => void; // ← 添加 username 参数
 }
 
 type QRCodeStatus = 'loading' | 'ready' | 'scanned' | 'confirmed' | 'expired' | 'error';
@@ -80,7 +80,7 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
         console.log('[前端] 检查状态响应:', JSON.stringify(response, null, 2));
         
         if (response.success && response.data) {
-          const { status: qrStatus, cookie } = response.data;
+          const { status: qrStatus, cookie, username } = response.data;
           
           // 🔍 调试日志：打印当前状态
           console.log('[前端] 当前状态:', qrStatus, '| Cookie长度:', cookie?.length || 0);
@@ -88,14 +88,14 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
           if (qrStatus === 'scanned') {
             setStatus('scanned');
             toast.info('检测到扫码，请在手机上确认登录');
-          } else if (qrStatus === 'confirmed' && cookie) {
+          } else if (qrStatus === 'confirmed' && cookie && username) {
             setStatus('confirmed');
             stopPolling();
             stopCountdown();
             
             // 延迟后回调登录成功
             setTimeout(() => {
-              onSuccess(cookie);
+              onSuccess(cookie, username);
             }, 500);
           } else if (qrStatus === 'expired') {
             setStatus('expired');

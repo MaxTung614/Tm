@@ -151,9 +151,13 @@ export default function Accounts() {
   };
 
   // 扫码登录成功回调
-  const handleQRCodeSuccess = (cookie: string) => {
-    setFormData(prev => ({ ...prev, cookie }));
-    toast.success('扫码成功！请输入账号名称后保存', {
+  const handleQRCodeSuccess = (cookie: string, username: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      cookie,
+      name: username // ← 自动填充用户名
+    }));
+    toast.success(`扫码成功！已获取账号：${username}`, {
       duration: 3000,
     });
   };
@@ -512,28 +516,22 @@ export default function Accounts() {
 
             {/* 扫码登录标签页 */}
             <TabsContent value="qrcode" className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">账号名称</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="例如：主账号、小号1"
-                />
-              </div>
-
               {/* 二维码登录组件 */}
               <div className="border rounded-lg p-4 bg-gray-50">
                 <QRCodeLogin onSuccess={handleQRCodeSuccess} />
               </div>
 
-              {formData.cookie && (
+              {formData.cookie && formData.name && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <div className="flex items-start space-x-2">
                     <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-green-800">
-                      <p className="font-medium mb-1">✅ Cookie 已获取</p>
+                      <p className="font-medium mb-1">✅ 登录成功</p>
                       <p className="text-xs">
-                        请输入账号名称后点击保存按钮
+                        账号名称：<span className="font-semibold">{formData.name}</span>
+                      </p>
+                      <p className="text-xs mt-1">
+                        Cookie 已获取，点击保存按钮完成添加
                       </p>
                     </div>
                   </div>

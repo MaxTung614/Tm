@@ -30,13 +30,13 @@ app.get("/make-server-c6898dcb/health", (c) => {
 // https://github.com/xinlingqudongX/TSDK
 // =====================================================
 
-// 辅助函数：初始化登录前的 CSRF 和 umidToken
+// 辅助函数：初始化登录前准备（获取 CSRF Token 和 umidToken）
 async function initLoginBefore() {
-  console.log("[QR] 初始化登录前置数据");
-  
   try {
+    console.log("[QR] 开始初始化登录前准备...");
+
     const res = await fetch(
-      `https://login.taobao.com/havanaone/login/login.htm?bizName=taobao&f=top&redirectURL=${encodeURIComponent("https://www.taobao.com")}`,
+      "https://login.taobao.com/member/login.jhtml?redirectURL=https://www.taobao.com/",
       {
         method: "GET",
         headers: {
@@ -55,50 +55,104 @@ async function initLoginBefore() {
       throw new Error(`初始化请求失败: HTTP ${res.status}`);
     }
 
+    // ✅ 提取初始 Cookie（关键！）
+    const setCookieHeaders = res.headers.getSetCookie?.() || [];
+    const cookies: string[] = [];
+    
+    for (const setCookie of setCookieHeaders) {
+      const cookiePair = setCookie.split(';')[0];
+      if (cookiePair) {
+        cookies.push(cookiePair.trim());
+      }
+    }
+    
+    const initialCookies = cookies.join('; ');
+    console.log(`[QR] 🍪 初始 Cookie 提取: ${cookies.length} 个，预览: ${initialCookies.substring(0, 100)}...`);
+
     const html = await res.text();
     console.log(`[QR] 获取到 HTML，长度: ${html.length}`);
     
-    // 提取 viewData 中的 _csrf 和 umidToken
+    // 初始化返回值
+    let csrf = "";
+    let umidToken = "";
+    
+    // 方法1: 尝试从 viewData 提取
     const viewDataMatch = html.match(/viewData\s*=\s*(\{.*?\});/s);
-    if (!viewDataMatch) {
-      console.log("[QR] 未找到 viewData，尝试其他方式提取");
-      
-      // 尝试直接提取
-      const csrfMatch = html.match(/"_csrf"\s*:\s*"([^"]+)"/);
-      const umidTokenMatch = html.match(/"umidToken"\s*:\s*"([^"]+)"/);
-      
-      console.log(`[QR] 直接提取结果 - csrf: ${csrfMatch ? '找到' : '未找到'}, umidToken: ${umidTokenMatch ? '找到' : '未找到'}`);
-      
-      if (!csrfMatch || !umidTokenMatch) {
-        // 保存 HTML 片段用于调试
-        console.error("[QR] HTML 预览（前 1000 字符）:", html.substring(0, 1000));
-        throw new Error("无法从页面提取 CSRF Token 和 umidToken，淘宝页面可能已更新");
+    if (viewDataMatch) {
+      try {
+        const viewDataStr = viewDataMatch[1];
+        const viewData = JSON.parse(viewDataStr);
+        console.log(`[QR] 找到 viewData，键名:`, Object.keys(viewData));
+        
+        const loginForm = viewData.loginFormData || {};
+        console.log(`[QR] loginFormData 内容:`, loginForm);
+        
+        // 提取 csrf（可能在 loginFormData 中）
+        if (loginForm._csrf) {
+          csrf = loginForm._csrf;
+          console.log(`[QR] 从 loginFormData 提取到 csrf: ${csrf.substring(0, 10)}...`);
+        }
+        
+        // 尝试从 viewData 的其他位置提取 umidToken
+        if (viewData.umidToken) {
+          umidToken = viewData.umidToken;
+          console.log(`[QR] 从 viewData 根级别提取到 umidToken: ${umidToken.substring(0, 10)}...`);
+        } else if (loginForm.umidToken) {
+          umidToken = loginForm.umidToken;
+          console.log(`[QR] 从 loginFormData 提取到 umidToken: ${umidToken.substring(0, 10)}...`);
+        }
+      } catch (err) {
+        console.error("[QR] 解析 viewData 失败:", err);
       }
-      
-      return {
-        csrf: csrfMatch[1],
-        umidToken: umidTokenMatch[1],
-      };
-    }
-
-    const viewDataStr = viewDataMatch[1];
-    console.log(`[QR] 找到 viewData，长度: ${viewDataStr.length}`);
-    
-    const viewData = JSON.parse(viewDataStr);
-    const loginForm = viewData.loginFormData || {};
-    
-    if (!loginForm._csrf || !loginForm.umidToken) {
-      console.error("[QR] loginFormData 缺少必需字段:", loginForm);
-      throw new Error("loginFormData 中缺少 CSRF Token 或 umidToken");
+    } else {
+      console.log("[QR] 未找到 viewData");
     }
     
-    console.log(
-      `[QR] 提取成功 - csrf: ${loginForm._csrf?.substring(0, 10)}..., umidToken: ${loginForm.umidToken?.substring(0, 10)}...`,
-    );
+    // 方法2: 如果还没找到，使用正则直接提取
+    if (!csrf) {
+      const csrfMatch = html.match(/"_csrf"\s*:\s*"([^"]+)"/);
+      if (csrfMatch) {
+        csrf = csrfMatch[1];
+        console.log(`[QR] 通过正则提取到 csrf: ${csrf.substring(0, 10)}...`);
+      }
+    }
+    
+    if (!umidToken) {
+      const umidTokenMatch = html.match(/"umidToken"\s*:\s*"([^"]+)"/);
+      if (umidTokenMatch) {
+        umidToken = umidTokenMatch[1];
+        console.log(`[QR] 通过正则提取到 umidToken: ${umidToken.substring(0, 10)}...`);
+      }
+    }
+    
+    // 方法3: 尝试生成一个 umidToken（作为最后的备选）
+    if (!umidToken) {
+      // 淘宝的 umidToken 格式：C + 时间戳 + 11位随机数 + 时间戳 + 3位随机数
+      const now = Date.now();
+      const random11 = Math.random().toString().substring(2, 13).padEnd(11, '0');
+      const random3 = Math.random().toString().substring(2, 5).padEnd(3, '0');
+      umidToken = `C${now}${random11}${now}${random3}`;
+      console.log(`[QR] 生成备用 umidToken: ${umidToken.substring(0, 20)}...`);
+    }
+    
+    // 验证结果
+    if (!csrf) {
+      console.error("[QR] 无法提取 CSRF Token");
+      console.error("[QR] HTML 预览（前 2000 字符）:", html.substring(0, 2000));
+      throw new Error("无法从页面提取 CSRF Token");
+    }
+    
+    if (!umidToken) {
+      console.error("[QR] 无法提取或生成 umidToken");
+      throw new Error("无法提取或生成 umidToken");
+    }
+    
+    console.log(`[QR] ✅ 提取成功 - csrf: ${csrf.substring(0, 10)}..., umidToken: ${umidToken.substring(0, 20)}...`);
     
     return {
-      csrf: loginForm._csrf,
-      umidToken: loginForm.umidToken,
+      csrf: csrf,
+      umidToken: umidToken,
+      initialCookies: initialCookies,
     };
   } catch (err: any) {
     console.error("[QR] initLoginBefore 异常:", err.message);
@@ -114,7 +168,7 @@ app.post(
       console.log("[QR] ========== 开始生成二维码 ==========");
 
       // 步骤1: 初始化获取 CSRF 和 umidToken
-      const { csrf, umidToken } = await initLoginBefore();
+      const { csrf, umidToken, initialCookies } = await initLoginBefore();
       
       if (!csrf || !umidToken) {
         throw new Error("获取 CSRF 或 umidToken 失败");
@@ -135,19 +189,77 @@ app.post(
 
       console.log(`[QR] 请求 URL: ${qrGenUrl.toString()}`);
 
+      // ✅ 携带初始 Cookie 发送请求
+      const genHeaders: Record<string, string> = {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Referer: "https://login.taobao.com/",
+        Accept: "application/json, text/javascript, */*; q=0.01",
+      };
+      
+      if (initialCookies) {
+        genHeaders["Cookie"] = initialCookies;
+        console.log(`[QR] 🍪 使用初始 Cookie 生成二维码: ${initialCookies.substring(0, 100)}...`);
+      }
+
       const response = await fetch(qrGenUrl.toString(), {
         method: "GET",
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          Referer: "https://login.taobao.com/",
-          Accept: "application/json, text/javascript, */*; q=0.01",
-        },
+        headers: genHeaders,
       });
 
       if (!response.ok) {
         throw new Error(`淘宝 API 返回错误: ${response.status}`);
       }
+
+      // ✅ 提取 Set-Cookie 响应头（关键！）
+      const setCookieHeaders = response.headers.getSetCookie?.() || [];
+      const cookies: string[] = [];
+      
+      for (const setCookie of setCookieHeaders) {
+        // 提取 cookie 名称和值（去掉过期时间、path 等属性）
+        const cookiePair = setCookie.split(';')[0];
+        if (cookiePair) {
+          cookies.push(cookiePair.trim());
+        }
+      }
+      
+      const newCookieString = cookies.join('; ');
+      console.log(`[QR] 🍪 二维码生成请求返回 ${cookies.length} 个 Cookie: ${newCookieString.substring(0, 100)}...`);
+
+      // ✅ 合并初始 Cookie 和新 Cookie
+      const allCookies = new Set<string>();
+      
+      // 添加初始 Cookie
+      if (initialCookies) {
+        initialCookies.split(';').forEach(cookie => {
+          const trimmed = cookie.trim();
+          if (trimmed) {
+            allCookies.add(trimmed);
+          }
+        });
+      }
+      
+      // 添加新 Cookie（会覆盖同名的旧 Cookie）
+      if (newCookieString) {
+        newCookieString.split(';').forEach(cookie => {
+          const trimmed = cookie.trim();
+          if (trimmed) {
+            // 提取 cookie 名称
+            const cookieName = trimmed.split('=')[0];
+            // 删除旧的同名 cookie
+            allCookies.forEach(existingCookie => {
+              if (existingCookie.startsWith(cookieName + '=')) {
+                allCookies.delete(existingCookie);
+              }
+            });
+            // 添加新 cookie
+            allCookies.add(trimmed);
+          }
+        });
+      }
+      
+      const finalCookieString = Array.from(allCookies).join('; ');
+      console.log(`[QR] 🍪 合并后的 Cookie (${allCookies.size} 个): ${finalCookieString.substring(0, 150)}...`);
 
       const resData: any = await response.json();
       console.log("[QR] 淘宝响应:", JSON.stringify(resData));
@@ -173,7 +285,7 @@ app.post(
       // 生成会话ID
       const sessionId = `qr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // 保存会话信息到 KV
+      // ✅ 保存会话信息到 KV（包含 Cookie）
       await kv.set(
         `qr_session:${sessionId}`,
         JSON.stringify({
@@ -181,6 +293,7 @@ app.post(
           ck: ck,
           csrf: csrf,
           umidToken: umidToken,
+          cookies: finalCookieString, // ← 保存 Cookie
           qrCodeUrl: qrUrl,
           status: "waiting",
           createdAt: Date.now(),
@@ -279,15 +392,26 @@ app.post(
 
       console.log(`[QR] 检查参数:`, JSON.stringify(checkData, null, 2));
 
+      // ✅ 使用保存的 Cookie（关键！）
+      const headers: Record<string, string> = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Referer: "https://login.taobao.com/",
+        Accept: "application/json, text/javascript, */*; q=0.01",
+      };
+      
+      // 添加 Cookie 请求头
+      if (session.cookies) {
+        headers["Cookie"] = session.cookies;
+        console.log(`[QR] 🍪 使用 Cookie: ${session.cookies.substring(0, 100)}...`);
+      } else {
+        console.log(`[QR] ⚠️ 警告：没有可用的 Cookie`);
+      }
+
       const response = await fetch(checkUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          Referer: "https://login.taobao.com/",
-          Accept: "application/json, text/javascript, */*; q=0.01",
-        },
+        headers: headers,
         body: new URLSearchParams(checkData as any).toString(),
       });
 
@@ -381,9 +505,52 @@ app.post(
         console.log(`[QR] ✅ Cookie 提取完成，长度: ${cookieString.length}`);
         console.log(`[QR] Cookie 预览: ${cookieString.substring(0, 200)}...`);
         
+        // ✅ 提取用户名（从 Cookie 中）
+        let username = "未知用户";
+        
+        // 方法1: 尝试从 _nk_ 字段提取（URL 编码的用户名）
+        const nkMatch = cookieString.match(/_nk_=([^;]+)/);
+        if (nkMatch) {
+          try {
+            username = decodeURIComponent(nkMatch[1]);
+            console.log(`[QR] 从 _nk_ 提取用名: ${username}`);
+          } catch (err) {
+            console.error(`[QR] 解码 _nk_ 失败:`, err);
+          }
+        }
+        
+        // 方法2: 尝试从 tracknick 字段提取
+        if (username === "未知用户") {
+          const tracknickMatch = cookieString.match(/tracknick=([^;]+)/);
+          if (tracknickMatch) {
+            try {
+              username = decodeURIComponent(tracknickMatch[1]);
+              console.log(`[QR] 从 tracknick 提取用户名: ${username}`);
+            } catch (err) {
+              console.error(`[QR] 解码 tracknick 失败:`, err);
+            }
+          }
+        }
+        
+        // 方法3: 尝试从 lgc 字段提取（登录账号）
+        if (username === "未知用户") {
+          const lgcMatch = cookieString.match(/lgc=([^;]+)/);
+          if (lgcMatch) {
+            try {
+              username = decodeURIComponent(lgcMatch[1]);
+              console.log(`[QR] 从 lgc 提取用户名: ${username}`);
+            } catch (err) {
+              console.error(`[QR] 解码 lgc 失败:`, err);
+            }
+          }
+        }
+        
+        console.log(`[QR] 🏷️ 最终用户名: ${username}`);
+        
         // 更新会话状态
         session.status = "confirmed";
         session.cookie = cookieString;
+        session.username = username; // ← 保存用户名
         await kv.set(`qr_session:${qrCodeId}`, JSON.stringify(session));
 
         return c.json({
@@ -391,6 +558,7 @@ app.post(
           data: {
             status: "confirmed",
             cookie: cookieString,
+            username: username, // ← 返回用户名
           },
         });
       } else if (qrCodeStatus === "SCANED" || qrCodeStatus === "已扫码") {

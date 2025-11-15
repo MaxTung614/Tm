@@ -68,7 +68,17 @@ export default function Dashboard() {
         statService.getStatsOverview(),
       ]);
 
-      if (giftsResponse.success && giftsResponse.data) {
+      // 检查红包列表响应（允许"请先添加账号"这类提示）
+      if (!giftsResponse.success) {
+        // 如果是"请先添加账号"，这是正常情况，不抛出错误
+        if (giftsResponse.message?.includes('请先添加账号')) {
+          logInfo('用户尚未添加账号', { operation: 'check_gifts' });
+          setRedPackets([]);
+        } else {
+          // 其他错误才抛出
+          throw new Error(`获取红包列表失败: ${giftsResponse.message || '未知错误'}`);
+        }
+      } else if (giftsResponse.data) {
         const giftCount = giftsResponse.data.gifts?.length || 0;
         logInfo(`成功加载 ${giftCount} 个可用红包`, {
           operation: 'load_gifts',
@@ -90,20 +100,25 @@ export default function Dashboard() {
         setRedPackets(filteredGifts);
       }
 
-      if (statsResponse.success && statsResponse.data) {
+      // 检查统计数据响应
+      if (!statsResponse.success) {
+        // 统计数据失败也不是致命错误，只记录日志
+        logInfo('统计数据暂不可用', { 
+          operation: 'check_stats',
+          reason: statsResponse.message 
+        });
+        setStats({ 
+          totalAccounts: 0, 
+          activeAccounts: 0, 
+          todayPurchases: 0, 
+          successRate: 0 
+        });
+      } else if (statsResponse.data) {
         logInfo('成功加载统计数据', {
           operation: 'load_stats',
           stats: statsResponse.data
         });
         setStats(statsResponse.data);
-      }
-
-      if (!giftsResponse.success) {
-        throw new Error(`获取红包列表失败: ${giftsResponse.message || '未知错误'}`);
-      }
-
-      if (!statsResponse.success) {
-        throw new Error(`获取统计数据失败: ${statsResponse.message || '未知错误'}`);
       }
 
       logInfo('仪表板数据加载完成');
