@@ -332,9 +332,72 @@ export default function Accounts() {
     try {
       const text = await navigator.clipboard.readText();
       setFormData(prev => ({ ...prev, cookie: text }));
-      toast.success('Cookie 已粘贴');
+      
+      // ✅ 自动提取用户名
+      const username = extractUsernameFromCookie(text);
+      if (username && username !== '未知用户') {
+        setFormData(prev => ({ ...prev, name: username, cookie: text }));
+        toast.success(`Cookie 已粘贴，检测到用户名：${username}`);
+      } else {
+        toast.success('Cookie 已粘贴');
+      }
     } catch (error) {
       toast.error('粘贴失败，请手动复制');
+    }
+  };
+
+  // ✅ 从 Cookie 中提取用户名
+  const extractUsernameFromCookie = (cookieString: string): string => {
+    if (!cookieString) return '未知用户';
+    
+    try {
+      // 方法1: 尝试从 _nk_ 字段提取（URL 编码的用户名）
+      const nkMatch = cookieString.match(/_nk_=([^;]+)/);
+      if (nkMatch) {
+        try {
+          const username = decodeURIComponent(nkMatch[1]);
+          if (username) {
+            console.log(`[前端] 从 _nk_ 提取用户名: ${username}`);
+            return username;
+          }
+        } catch (err) {
+          console.error(`[前端] 解码 _nk_ 失败:`, err);
+        }
+      }
+      
+      // 方法2: 尝试从 tracknick 字段提取
+      const tracknickMatch = cookieString.match(/tracknick=([^;]+)/);
+      if (tracknickMatch) {
+        try {
+          const username = decodeURIComponent(tracknickMatch[1]);
+          if (username) {
+            console.log(`[前端] 从 tracknick 提取用户名: ${username}`);
+            return username;
+          }
+        } catch (err) {
+          console.error(`[前端] 解码 tracknick 失败:`, err);
+        }
+      }
+      
+      // 方法3: 尝试从 lgc 字段提取（登录账号）
+      const lgcMatch = cookieString.match(/lgc=([^;]+)/);
+      if (lgcMatch) {
+        try {
+          const username = decodeURIComponent(lgcMatch[1]);
+          if (username) {
+            console.log(`[前端] 从 lgc 提取用户名: ${username}`);
+            return username;
+          }
+        } catch (err) {
+          console.error(`[前端] 解码 lgc 失败:`, err);
+        }
+      }
+      
+      console.log(`[前端] 未能从 Cookie 中提取用户名`);
+      return '未知用户';
+    } catch (error) {
+      console.error(`[前端] 提取用户名失败:`, error);
+      return '未知用户';
     }
   };
 
@@ -541,6 +604,21 @@ export default function Accounts() {
 
             {/* 手动输入标签页 */}
             <TabsContent value="manual" className="space-y-4">
+              {/* 推荐提示 */}
+              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-300 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                    ⭐
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-orange-900 mb-1">💡 推荐使用此方法！</p>
+                    <p className="text-sm text-orange-800">
+                      在浏览器中登录后复制 Cookie，可以 <strong>100% 避免风控问题</strong>，且操作简单快捷。
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">账号名称</label>
                 <Input
@@ -575,18 +653,27 @@ export default function Accounts() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start space-x-2">
                 <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-800 space-y-2">
-                  <p className="font-medium">💡 如何获取 Cookie</p>
+                  <p className="font-medium">💡 如何获取 Cookie（推荐方法）</p>
                   <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>打开浏览器访问 <a href="https://www.taobao.com" target="_blank" rel="noopener noreferrer" className="underline">https://www.taobao.com</a></li>
-                    <li>登录您的淘宝账号</li>
-                    <li>按 F12 打开开发者工具</li>
-                    <li>点击 "Application" 或 "应用" 标签</li>
-                    <li>左侧选择 Cookies → https://www.taobao.com</li>
-                    <li>复制所有 Cookie（格式：cookie2=xxx; _m_h5_tk=xxx; ...）</li>
-                    <li>粘贴到上方输入框</li>
+                    <li>打开浏览器，访问 <a href="https://www.taobao.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">https://www.taobao.com</a></li>
+                    <li>使用您的淘宝账号登录（扫码或密码登录均可）</li>
+                    <li>登录成功后，按 <kbd className="px-1 py-0.5 bg-white border rounded text-xs">F12</kbd> 打开开发者工具</li>
+                    <li>点击顶部的 <strong>"Application"</strong> 或 <strong>"应用程序"</strong> 标签</li>
+                    <li>左侧菜单找到 <strong>"Cookies"</strong> → <strong>"https://www.taobao.com"</strong></li>
+                    <li>按 <kbd className="px-1 py-0.5 bg-white border rounded text-xs">Ctrl+A</kbd> 全选所有 Cookie，右键复制</li>
+                    <li>点击上方的"粘贴"按钮，或按 <kbd className="px-1 py-0.5 bg-white border rounded text-xs">Ctrl+V</kbd> 粘贴</li>
                   </ol>
-                  <p className="text-xs mt-2">
-                    ✅ Cookie 会自动加密存储，确保账号安全
+                  <div className="mt-3 p-2 bg-white rounded border border-blue-300">
+                    <p className="text-xs font-semibold mb-1">🎯 必需的关键 Cookie：</p>
+                    <ul className="text-xs space-y-0.5 text-blue-700">
+                      <li>• <code className="bg-blue-100 px-1 rounded">cookie2</code> - 登录凭证</li>
+                      <li>• <code className="bg-blue-100 px-1 rounded">t</code> - 用户令牌</li>
+                      <li>• <code className="bg-blue-100 px-1 rounded">_tb_token_</code> - 防伪令牌</li>
+                      <li>• <code className="bg-blue-100 px-1 rounded">_nk_</code> - 用户名（用于自动识别账号）</li>
+                    </ul>
+                  </div>
+                  <p className="text-xs mt-2 font-semibold text-green-700">
+                    ✅ 系统会自动检测用户名并加密存储 Cookie，确保账号安全
                   </p>
                 </div>
               </div>

@@ -444,12 +444,13 @@ app.post(
       if (qrCodeStatus === "CONFIRMED" || qrCodeStatus === "已确认") {
         console.log(`[QR] ✅ 登录成功！开始提取 Cookie`);
         
-        // 登录成功，访问异步 URL 获取 Cookie（TSDK 第 217-220 行）
+        // 登录成功，访问跳转 URL 获取 Cookie（TSDK 第 217-220 行）
+        // ✅ 修复：淘宝返回的是 redirectUrl 而不是 iframeRedirectUrl
         const asyncUrls = data.asyncUrls || [];
-        const iframeRedirectUrl = data.iframeRedirectUrl;
+        const redirectUrl = data.redirectUrl || data.iframeRedirectUrl; // ← 优先使用 redirectUrl
         
         console.log(`[QR] asyncUrls:`, asyncUrls);
-        console.log(`[QR] iframeRedirectUrl:`, iframeRedirectUrl);
+        console.log(`[QR] redirectUrl:`, redirectUrl);
         
         let cookieString = "";
         const cookieSet = new Set<string>();
@@ -478,25 +479,201 @@ app.post(
         }
         
         // 访问主重定向 URL
-        if (iframeRedirectUrl) {
+        if (redirectUrl) {
           try {
-            console.log(`[QR] 访问 iframeRedirectUrl: ${iframeRedirectUrl}`);
-            const mainRes = await fetch(iframeRedirectUrl, {
-              method: "GET",
-              redirect: "manual",
-              headers: {
-                "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-              },
-            });
+            console.log(`[QR] 🔗 开始跟随重定向链，起始 URL: ${redirectUrl}`);
             
-            const setCookies = mainRes.headers.getSetCookie?.() || [];
-            setCookies.forEach((cookie) => {
-              const cookiePair = cookie.split(";")[0];
-              cookieSet.add(cookiePair);
-            });
+            // ✅ 手动跟随重定向链（最多 5 次）
+            let currentUrl = redirectUrl;
+            let redirectCount = 0;
+            const maxRedirects = 5;
+            
+            while (redirectCount <= maxRedirects) {
+              console.log(`[QR] 🌐 [${redirectCount}] 访问: ${currentUrl.substring(0, 100)}...`);
+              
+              const res = await fetch(currentUrl, {
+                method: "GET",
+                redirect: "manual", // ← 手动控制重定向
+                headers: {
+                  "User-Agent":
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                  "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+                  "Accept-Encoding": "gzip, deflate, br",
+                  "Referer": "https://login.taobao.com/",
+                  "Connection": "keep-alive",
+                  "Upgrade-Insecure-Requests": "1",
+                  "Sec-Fetch-Dest": "document",
+                  "Sec-Fetch-Mode": "navigate",
+                  "Sec-Fetch-Site": "same-site",
+                  "Sec-Fetch-User": "?1",
+                  "Cache-Control": "max-age=0",
+                  "Cookie": session.cookies, // ← 携带会话 Cookie
+                },
+              });
+              
+              console.log(`[QR] 📊 [${redirectCount}] 状态码: ${res.status}`);
+              
+              // 提取 Set-Cookie 响应头
+              const setCookies = res.headers.getSetCookie?.() || [];
+              console.log(`[QR] 🍪 [${redirectCount}] 获取到 ${setCookies.length} 个 Set-Cookie 响应头`);
+              
+              if (setCookies.length > 0) {
+                setCookies.forEach((cookie) => {
+                  const cookiePair = cookie.split(";")[0];
+                  const cookieName = cookiePair.split('=')[0];
+                  console.log(`[QR] ➕ [${redirectCount}] 添加 Cookie: ${cookieName}=${cookiePair.substring(cookieName.length + 1, Math.min(cookiePair.length, cookieName.length + 31))}...`);
+                  cookieSet.add(cookiePair);
+                });
+              }
+              
+              // 检查是否有 HTTP 重定向 (3xx)
+              if (res.status >= 300 && res.status < 400) {
+                const location = res.headers.get("Location");
+                if (location) {
+                  // 处理相对 URL
+                  if (location.startsWith('/')) {
+                    const urlObj = new URL(currentUrl);
+                    currentUrl = `${urlObj.protocol}//${urlObj.host}${location}`;
+                  } else if (!location.startsWith('http')) {
+                    const urlObj = new URL(currentUrl);
+                    const basePath = urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
+                    currentUrl = `${urlObj.protocol}//${urlObj.host}${basePath}${location}`;
+                  } else {
+                    currentUrl = location;
+                  }
+                  
+                  console.log(`[QR] 🔄 [${redirectCount}] HTTP 重定向到: ${currentUrl.substring(0, 100)}...`);
+                  redirectCount++;
+                  
+                  // 更新 session.cookies，将新获取的 Cookie 合并
+                  const currentCookies = Array.from(cookieSet).join('; ');
+                  session.cookies = currentCookies;
+                  
+                  continue;
+                }
+              }
+              
+              // ✅ 检查是否是 200 但有 JavaScript/Meta 重定向
+              if (res.status === 200) {
+                try {
+                  const html = await res.text();
+                  console.log(`[QR] 📄 [${redirectCount}] 获取到 HTML，长度: ${html.length}`);
+                  
+                  // 方法1: 查找 JavaScript 跳转
+                  // window.location.href = "..."
+                  // window.location = "..."
+                  // location.href = "..."
+                  const jsRedirectMatch = html.match(/(?:window\.)?location(?:\.href)?\s*=\s*["']([^"']+)["']/i);
+                  if (jsRedirectMatch) {
+                    let nextUrl = jsRedirectMatch[1];
+                    
+                    // 处理相对 URL
+                    if (nextUrl.startsWith('/')) {
+                      const urlObj = new URL(currentUrl);
+                      nextUrl = `${urlObj.protocol}//${urlObj.host}${nextUrl}`;
+                    } else if (!nextUrl.startsWith('http')) {
+                      const urlObj = new URL(currentUrl);
+                      const basePath = urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
+                      nextUrl = `${urlObj.protocol}//${urlObj.host}${basePath}${nextUrl}`;
+                    }
+                    
+                    console.log(`[QR] 🔄 [${redirectCount}] JS 重定向到: ${nextUrl.substring(0, 100)}...`);
+                    currentUrl = nextUrl;
+                    redirectCount++;
+                    
+                    // 更新 session.cookies
+                    const currentCookies = Array.from(cookieSet).join('; ');
+                    session.cookies = currentCookies;
+                    
+                    continue;
+                  }
+                  
+                  // 方法2: 查找 Meta 标签重定向
+                  // <meta http-equiv="refresh" content="0;url=...">
+                  const metaRedirectMatch = html.match(/<meta[^>]+http-equiv=["']refresh["'][^>]+content=["'][^;]+;\s*url=([^"']+)["']/i);
+                  if (metaRedirectMatch) {
+                    let nextUrl = metaRedirectMatch[1];
+                    
+                    // 处理相对 URL
+                    if (nextUrl.startsWith('/')) {
+                      const urlObj = new URL(currentUrl);
+                      nextUrl = `${urlObj.protocol}//${urlObj.host}${nextUrl}`;
+                    } else if (!nextUrl.startsWith('http')) {
+                      const urlObj = new URL(currentUrl);
+                      const basePath = urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
+                      nextUrl = `${urlObj.protocol}//${urlObj.host}${basePath}${nextUrl}`;
+                    }
+                    
+                    console.log(`[QR] 🔄 [${redirectCount}] Meta 重定向到: ${nextUrl.substring(0, 100)}...`);
+                    currentUrl = nextUrl;
+                    redirectCount++;
+                    
+                    // 更新 session.cookies
+                    const currentCookies = Array.from(cookieSet).join('; ');
+                    session.cookies = currentCookies;
+                    
+                    continue;
+                  }
+                  
+                  // 方法3: 检查是否是淘宝的验证页面
+                  if (currentUrl.includes('normal_validate.htm') || currentUrl.includes('login_check.htm') || currentUrl.includes('verify_modes.htm') || currentUrl.includes('identity_verify.htm')) {
+                    console.log(`[QR] 🔍 [${redirectCount}] 检测到验证页面: ${currentUrl.split('?')[0]}`);
+                    
+                    // 查找页面中的 URL（可能在 data-url、href 等属性中）
+                    const urlMatch = html.match(/(?:data-url|href)=[\"']([^\"']+taobao\\.com[^\"']*)[\"']/i);
+                    if (urlMatch) {
+                      let nextUrl = urlMatch[1];
+                      
+                      // HTML 解码
+                      nextUrl = nextUrl.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '\"');
+                      
+                      // 处理相对 URL
+                      if (nextUrl.startsWith('/')) {
+                        const urlObj = new URL(currentUrl);
+                        nextUrl = `${urlObj.protocol}//${urlObj.host}${nextUrl}`;
+                      } else if (!nextUrl.startsWith('http')) {
+                        const urlObj = new URL(currentUrl);
+                        const basePath = urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
+                        nextUrl = `${urlObj.protocol}//${urlObj.host}${basePath}${nextUrl}`;
+                      }
+                      
+                      console.log(`[QR] 🔄 [${redirectCount}] 从页面提取到 URL: ${nextUrl.substring(0, 100)}...`);
+                      currentUrl = nextUrl;
+                      redirectCount++;
+                      
+                      // 更新 session.cookies
+                      const currentCookies = Array.from(cookieSet).join('; ');
+                      session.cookies = currentCookies;
+                      
+                      continue;
+                    }
+                    
+                    console.log(`[QR] ⚠️ [${redirectCount}] 无法从验证页面提取跳转 URL`);
+                    console.log(`[QR] 📋 HTML 预览（前 1000 字符）: ${html.substring(0, 1000)}`);
+                  }
+                  
+                  // 没有找到任何重定向，到达最终页面
+                  console.log(`[QR] ✅ [${redirectCount}] 到达最终页面，状态码: ${res.status}`);
+                } catch (err) {
+                  console.error(`[QR] ❌ [${redirectCount}] 解析页面失败:`, err);
+                  console.log(`[QR] ✅ [${redirectCount}] 到达最终页面，状态码: ${res.status}`);
+                  break;
+                }
+              }
+              
+              // 其他状态码，停止
+              console.log(`[QR] ✅ [${redirectCount}] 到达最终页面，状态码: ${res.status}`);
+              break;
+            }
+            
+            if (redirectCount > maxRedirects) {
+              console.log(`[QR] ⚠️ 重定向次数超过限制 (${maxRedirects})，停止跟随`);
+            }
+            
+            console.log(`[QR] 🏁 重定向链结束，共跟随 ${redirectCount} 次重定向`);
           } catch (err) {
-            console.error(`[QR] 访问 iframeRedirectUrl 失败:`, err);
+            console.error(`[QR] ❌ 访问 redirectUrl 失败:`, err);
           }
         }
         

@@ -88,14 +88,41 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
           if (qrStatus === 'scanned') {
             setStatus('scanned');
             toast.info('检测到扫码，请在手机上确认登录');
-          } else if (qrStatus === 'confirmed' && cookie && username) {
+          } else if (qrStatus === 'confirmed') {
+            // ✅ 检查 Cookie 是否为空
+            if (!cookie || cookie.trim() === '') {
+              console.error('[前端] ❌ Cookie 为空！后端提取失败');
+              setStatus('error');
+              setErrorMessage('登录失败：Cookie 提取失败，请查看后端日志');
+              stopPolling();
+              stopCountdown();
+              toast.error('登录失败：Cookie 提取失败', {
+                duration: 5000,
+              });
+              return;
+            }
+            
+            // ✅ 检查 Cookie 长度，判断是否被风控
+            if (cookie.length < 500) {
+              console.warn(`[前端] ⚠️ Cookie 长度过短 (${cookie.length})，可能遇到风控验证`);
+              setStatus('error');
+              setErrorMessage('⚠️ 淘宝触发风控验证，无法获取完整 Cookie');
+              stopPolling();
+              stopCountdown();
+              toast.error('扫码登录失败：遇到风控验证', {
+                description: '请切换到"手动输入"标签页，按照提示在浏览器中登录并复制 Cookie',
+                duration: 8000,
+              });
+              return;
+            }
+            
             setStatus('confirmed');
             stopPolling();
             stopCountdown();
             
             // 延迟后回调登录成功
             setTimeout(() => {
-              onSuccess(cookie, username);
+              onSuccess(cookie, username || '未知用户');
             }, 500);
           } else if (qrStatus === 'expired') {
             setStatus('expired');
@@ -218,7 +245,7 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
           <div className="absolute inset-0 bg-green-500 bg-opacity-90 rounded-xl flex flex-col items-center justify-center text-white">
             <Smartphone className="w-12 h-12 mb-2 animate-bounce" />
             <p className="font-medium">已扫码</p>
-            <p className="text-sm">请在手机上确认</p>
+            <p className="text-sm">请在手上确认</p>
           </div>
         )}
       </div>
@@ -262,20 +289,45 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
 
       {/* 错误信息 */}
       {status === 'error' && errorMessage && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 w-full">
-          <div className="flex items-start space-x-2">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-red-800">
-              <p className="font-medium mb-1">连接失败</p>
-              <p className="text-xs">{errorMessage}</p>
-              <p className="text-xs mt-2">请确保：</p>
-              <ul className="text-xs list-disc list-inside mt-1 space-y-0.5">
-                <li>后端服务已启动</li>
-                <li>API地址配置正确</li>
-                <li>网络连接正常</li>
-              </ul>
+        <div className="w-full space-y-3">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-red-800">
+                <p className="font-medium mb-1">扫码登录失败</p>
+                <p className="text-xs">{errorMessage}</p>
+              </div>
             </div>
           </div>
+          
+          {/* 推荐使用手动输入 */}
+          {errorMessage.includes('风控') && (
+            <div className="bg-orange-50 border border-orange-300 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                  ✓
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-orange-900 mb-2">💡 推荐方案：使用"手动输入"</p>
+                  <div className="text-sm text-orange-800 space-y-2">
+                    <p>由于淘宝风控机制，扫码登录可能会失败。建议您：</p>
+                    <ol className="list-decimal list-inside space-y-1 text-xs">
+                      <li>点击上方的 <strong>"手动输入"</strong> 标签页</li>
+                      <li>在浏览器中访问 <strong>taobao.com</strong> 并登录</li>
+                      <li>按 <kbd className="px-1 py-0.5 bg-white border rounded text-xs">F12</kbd> 打开开发者工具</li>
+                      <li>复制 Cookie 并粘贴到输入框</li>
+                      <li>系统会自动识别用户名</li>
+                    </ol>
+                    <div className="mt-3 p-2 bg-white rounded border border-orange-300">
+                      <p className="text-xs font-semibold text-green-700">
+                        ✅ 这种方式可以 100% 避免风控问题，且操作简单！
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
