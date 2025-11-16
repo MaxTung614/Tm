@@ -74,6 +74,19 @@ export default function Dashboard() {
         if (giftsResponse.message?.includes('请先添加账号')) {
           logInfo('用户尚未添加账号', { operation: 'check_gifts' });
           setRedPackets([]);
+        } else if (giftsResponse.message?.includes('Cookie 已过期') || 
+                   giftsResponse.message?.includes('请重新登录')) {
+          // Cookie 过期，提示用户重新登录
+          logWarning('Cookie 已过期', { operation: 'check_gifts' });
+          setRedPackets([]);
+          toast.error('Cookie 已过期', {
+            description: '请前往"账号管理"重新添加账号',
+            duration: 8000,
+            action: {
+              label: '前往账号管理',
+              onClick: () => window.location.href = '/accounts'
+            }
+          });
         } else {
           // 其他错误才抛出
           throw new Error(`获取红包列表失败: ${giftsResponse.message || '未知错误'}`);

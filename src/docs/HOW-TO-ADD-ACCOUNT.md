@@ -85,7 +85,7 @@ Settings（设置）
 ### 方法 1: 使用 Chrome 开发者工具
 
 1. **打开淘宝/天猫**
-   - 访问 [https://www.taobao.com](https://www.taobao.com)
+   - 访问 [天猫礼享金页面](https://pages.tmall.com/wow/an/tmall/user-growth/share-benefit-exchange)
    - 确保已登录
 
 2. **打开开发者工具**
@@ -98,7 +98,7 @@ Settings（设置）
 
 4. **查看 Cookies**
    - 左侧展开 **Storage** → **Cookies**
-   - 点击 `https://www.taobao.com`
+   - 点击 `https://pages.tmall.com`
 
 5. **复制所有 Cookie**
    - 选择所有 Cookie 行

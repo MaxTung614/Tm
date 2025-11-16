@@ -15,6 +15,7 @@ import {
 import { TARGET_RED_PACKETS, RED_PACKET_INFO } from './constants';
 import { toFrontendRedPackets, type FrontendRedPacket } from './types';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { USE_PLAYWRIGHT } from './config';
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -29,10 +30,15 @@ interface ApiResponse<T = any> {
 export const authService = {
   async generateQRCode(): Promise<ApiResponse> {
     try {
-      console.info('[REAL] authService.generateQRCode - 调用后端生成二维码');
+      // 根据配置选择使用 Playwright 或普通模式
+      const endpoint = USE_PLAYWRIGHT 
+        ? '/auth/qrcode/generate-playwright'
+        : '/auth/qrcode/generate';
+      
+      console.info(`[REAL] authService.generateQRCode - 调用后端生成二维码 (${USE_PLAYWRIGHT ? 'Playwright模式' : '普通模式'})`);
       
       const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-c6898dcb/auth/qrcode/generate`,
+        `https://${projectId}.supabase.co/functions/v1/make-server-c6898dcb${endpoint}`,
         {
           method: 'POST',
           headers: {
@@ -132,11 +138,14 @@ export const authService = {
 export const giftService = {
   async getAllGifts(): Promise<ApiResponse> {
     try {
-      console.info('[REAL] giftService.getAllGifts - 从 Supabase + 天猫 API 获取红包');
+      console.info('[REAL] giftService.getAllGifts - 通过后端 API 获取红包');
 
       // 1. 获取第一个可用账号
       const accounts = await accountService.getAll();
+      console.info('[REAL] 获取到账号数量:', accounts?.length || 0);
+      
       if (!accounts || accounts.length === 0) {
+        console.warn('[REAL] 没有可用账号');
         return {
           success: false,
           message: '请先添加账号'
@@ -144,28 +153,93 @@ export const giftService = {
       }
 
       const account = accounts[0];
+      console.info('[REAL] 使用账号:', account.name, '(ID:', account.id, ')');
+      console.info('[REAL] Cookie 长度:', account.cookie?.length || 0);
 
-      // 2. 初始化天猫 API
-      const api = new TmallGiftAPI(account.cookie);
+      // 2. 调用后端 API 获取红包列表
+      const apiUrl = `https://${projectId}.supabase.co/functions/v1/make-server-c6898dcb/gifts/list`;
+      console.info('[REAL] 调用后端 API:', apiUrl);
+      
+      const response = await fetch(
+        apiUrl,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({
+            cookie: account.cookie,
+          }),
+        }
+      );
 
-      // 3. 获取真实红包列表
-      const apiPackets = await api.getRedPackets();
-      console.info(`[REAL] 获取到 ${apiPackets.length} 个可用红包`);
+      console.info('[REAL] 后端响应状态:', response.status, response.statusText);
 
-      // 4. 转换为前端格式
+      // 解析响应（无论成功还是失败都尝试解析 JSON）
+      let data;
+      try {
+        data = await response.json();
+        console.info('[REAL] 解析后的响应数据:', JSON.stringify(data).substring(0, 500));
+      } catch (parseError) {
+        console.error('[REAL] 无法解析响应 JSON:', parseError);
+        throw new Error(`后端响应格式错误: HTTP ${response.status}`);
+      }
+
+      console.info(`[REAL] 后端 API 响应:`, data);
+
+      // 检查响应状态并识别错误类型
+      if (!response.ok || !data.success) {
+        const errorMsg = data.message || '获取红包列表失败';
+        
+        // 识别 Session 过期错误（支持多种格式）
+        if (errorMsg.includes('Session过期') || 
+            errorMsg.includes('SESSION_EXPIRED') ||
+            errorMsg.includes('Token已过期') ||
+            errorMsg.includes('会话已过期') ||
+            errorMsg.includes('请重新登录') ||
+            errorMsg.includes('Cookie可能已过期')) {
+          throw new Error('⚠️ Cookie 已过期，请重新登录获取新的 Cookie');
+        }
+        
+        throw new Error(errorMsg);
+      }
+
+      // 3. 转换为前端格式
+      const apiPackets = data.data.gifts || [];
+      const balance = data.data.balance || 0;
+      const availableAmount = data.data.availableAmount || '0';
+      
       const frontendPackets = toFrontendRedPackets(apiPackets);
+
+      console.info(`[REAL] 获取成功！礼享金余额: ${balance}, 可用红包: ${frontendPackets.length} 个`);
 
       return {
         success: true,
         data: {
-          gifts: frontendPackets
+          gifts: frontendPackets,
+          balance: balance,
+          availableAmount: availableAmount
         }
       };
     } catch (error: any) {
       console.error('[REAL] giftService.getAllGifts 失败:', error);
+      
+      // 识别 Session 过期错误
+      const errorMsg = error.message || '获取红包列表失败';
+      if (errorMsg.includes('Cookie 已过期') || 
+          errorMsg.includes('Session过期') ||
+          errorMsg.includes('请重新登录')) {
+        return {
+          success: false,
+          message: '⚠️ Cookie 已过期，请重新登录获取新的 Cookie',
+          needRelogin: true  // 标记需要重新登录
+        };
+      }
+      
       return {
         success: false,
-        message: error.message || '获取红包列表失败'
+        message: errorMsg
       };
     }
   },

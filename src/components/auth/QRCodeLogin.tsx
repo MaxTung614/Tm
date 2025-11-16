@@ -16,7 +16,7 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [qrCodeId, setQrCodeId] = useState<string>('');
   const [status, setStatus] = useState<QRCodeStatus>('loading');
-  const [countdown, setCountdown] = useState(180); // 3分钟倒计时
+  const [countdown, setCountdown] = useState(600); // ✅ 修复：改为 10 分钟，与后端过期时间一致
   const [errorMessage, setErrorMessage] = useState<string>('');
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
@@ -24,7 +24,7 @@ export default function QRCodeLogin({ onSuccess }: QRCodeLoginProps) {
   // 生成二维码
   const generateQRCode = async () => {
     setStatus('loading');
-    setCountdown(180);
+    setCountdown(600); // ✅ 修复：改为 10 分钟
     setErrorMessage('');
     
     try {

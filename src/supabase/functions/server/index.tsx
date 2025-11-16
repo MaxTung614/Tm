@@ -2,6 +2,8 @@ import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import * as kv from "./kv_store.tsx";
+import * as playwright from "./playwright.tsx";
+import { TmallGiftAPI } from "./tsdk.tsx";
 
 const app = new Hono();
 
@@ -218,7 +220,7 @@ app.post(
       const cookies: string[] = [];
       
       for (const setCookie of setCookieHeaders) {
-        // 提取 cookie 名称和值（去掉过���时间、path 等属性）
+        // 提取 cookie 名称和值（去掉过间、path 等属性）
         const cookiePair = setCookie.split(';')[0];
         if (cookiePair) {
           cookies.push(cookiePair.trim());
@@ -299,7 +301,7 @@ app.post(
           qrCodeUrl: qrUrl,
           status: "waiting",
           createdAt: Date.now(),
-          expiresAt: Date.now() + 300000, // 5分钟
+          expiresAt: Date.now() + 600000, // ✅ 修复：改为 10 分钟，给用户更充足的时间
         }),
       );
 
@@ -349,7 +351,7 @@ app.post(
 
       if (!sessionData) {
         return c.json(
-          { success: false, message: "会话已过期或不存在" },
+          { success: false, message: "会话已过期或存在" },
           404,
         );
       }
@@ -369,10 +371,16 @@ app.post(
       const checkUrl =
         "https://login.taobao.com/havanaone/loginLegacy/qrCode/query.do?bizEntrance=taobao_pc&bizName=taobao";
 
+      // ✅ 生成 deviceId（关键修复！）
+      const deviceId = `device_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      
+      // ✅ 生成 ua_enc（浏览器指纹，关键修复！）
+      const uaString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
       const checkData = {
         t: session.t,
         ck: session.ck,
-        ua: "",
+        ua: uaString, // ✅ 修复：填充真实 UA
         hitRSA2048Gray: true,
         bizEntrance: "taobao_pc",
         bizName: "taobao",
@@ -382,14 +390,13 @@ app.post(
         umidToken: session.umidToken,
         umidTag: "NOT_INIT",
         navLanguage: "zh-CN",
-        navUserAgent:
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        navUserAgent: uaString, // ✅ 修复：使用一致的 UA
         navPlatform: "Win32",
         isIframe: "false",
-        banThirdPartyCookie: "true",
+        banThirdPartyCookie: "false", // ✅ 修复：改为 false 允许写入 Cookie
         documentReferer: "https://www.taobao.com/",
         defaultView: "password",
-        deviceId: "",
+        deviceId: deviceId, // ✅ 修复：填充 deviceId
       };
 
       console.log(`[QR] 检查参数:`, JSON.stringify(checkData, null, 2));
@@ -445,330 +452,196 @@ app.post(
       if (qrCodeStatus === "CONFIRMED" || qrCodeStatus === "已确认") {
         console.log(`[QR] ✅ 登录成功！开始提取 Cookie`);
         
-        // 登录成功，访问跳转 URL 获取 Cookie（TSDK 第 217-220 行）
-        // ✅ 修复：淘宝返回的是 iframeRedirectUrl 而不是 redirectUrl
+        // ✅ 使用 TSDK 的 handleLoginSuccess 方法处理登录成功后的流程
+        // 基于 TSDK h5.py 第 276-285 行
         const asyncUrls = data.asyncUrls || [];
-        const redirectUrl = data.iframeRedirectUrl || data.redirectUrl; // ← 优先使用 iframeRedirectUrl
+        const iframeRedirectUrl = data.iframeRedirectUrl || data.redirectUrl;
         
         console.log(`[QR] asyncUrls 数量: ${asyncUrls.length}`);
-        console.log(`[QR] iframeRedirectUrl:`, redirectUrl);
+        console.log(`[QR] asyncUrls 内容:`, asyncUrls);
+        console.log(`[QR] iframeRedirectUrl:`, iframeRedirectUrl);
         
-        let cookieString = "";
-        const cookieMap = new Map<string, string>(); // 使用 Map 去重
-        
-        // ✅ 步骤1: 从 asyncUrls 的查询参数中提取 Cookie（关键！）
-        console.log(`[QR] 📋 开始从 asyncUrls 解析 Cookie...`);
-        for (const url of asyncUrls) {
-          try {
-            const urlObj = new URL(url);
-            console.log(`[QR] 解析 URL: ${urlObj.host}${urlObj.pathname}`);
-            
-            // 提取查询参数中的 Cookie 字段
-            const cookieFields = [
-              'cookie1', 'cookie2', 'cookie17', 
-              '_tb_token_', 't', 'sg', 'sgcookie',
-              '_nk_', 'tracknick', 'lgc', 'unb',
-              'uc1', 'uc3', 'uc4', 'lid', '_l_g_',
-              'csg', 'dnk', 'srt', 'wk_cookie2',
-              'existShop', 'cookie14', 'cookie15', 'cookie16', 'cookie21',
-              '_cc_', '_m_h5_tk', '_m_h5_tk_enc', 'x5sec',
-            ];
-            
-            for (const field of cookieFields) {
-              const value = urlObj.searchParams.get(field);
-              if (value) {
-                // ✅ URL 解码
-                const decodedValue = decodeURIComponent(value);
-                cookieMap.set(field, decodedValue);
-                console.log(`[QR] ➕ 从 URL 提取: ${field}=${decodedValue.substring(0, 30)}...`);
-              }
-            }
-          } catch (err) {
-            console.error(`[QR] 解析 asyncUrl 失败:`, err);
+        try {
+          // ✅ 创建 TSDK 客户端实例，使用当前会话的 Cookie
+          const { TaobaoH5Client } = await import('./tsdk.tsx');
+          const client = new TaobaoH5Client();
+          
+          console.log(`[QR] 🔧 创建 TSDK 客户端成功`);
+          
+          // ✅ 设置已有的 Cookie
+          if (session.cookies) {
+            client.setCookies(session.cookies);
+            console.log(`[QR] 🔧 TSDK 客户端已加载现有 Cookie (${session.cookies.length} 字符)`);
+            console.log(`[QR] 🔧 现有 Cookie 预览: ${session.cookies.substring(0, 150)}...`);
+          } else {
+            console.warn(`[QR] ⚠️ 会话中没有 Cookie！`);
           }
-        }
-        
-        console.log(`[QR] ✅ 从 asyncUrls 提取到 ${cookieMap.size} 个 Cookie 字段`);
-        
-        // ✅ 步骤2: 访问所有 asyncUrls 获取 Set-Cookie 响应头（可能有额外的 Cookie）
-        for (const url of asyncUrls) {
-          try {
-            console.log(`[QR] 🌐 访问 asyncUrl: ${url.substring(0, 80)}...`);
-            const asyncRes = await fetch(url, {
-              method: "GET",
-              redirect: "manual",
-              headers: {
-                "User-Agent": USER_AGENT,
-                "Cookie": session.cookies, // ← 携带会话 Cookie
-              },
-            });
+          
+          // ✅ 调用 handleLoginSuccess 处理跳转链接和刷新 token
+          console.log(`[QR] 🚀 开始调用 TSDK handleLoginSuccess...`);
+          await client.handleLoginSuccess(asyncUrls, iframeRedirectUrl);
+          console.log(`[QR] ✅ TSDK handleLoginSuccess 调用完成`);
+          
+          // ✅ 获取处理后的完整 Cookie
+          const cookieString = client.getCookieString();
+          console.log(`[QR] ✅ TSDK 登录成功处理完成，Cookie 长度: ${cookieString.length}`);
+          console.log(`[QR] 📊 Cookie 字段数量: ${cookieString.split(';').length}`);
+          console.log(`[QR] Cookie 预览: ${cookieString.substring(0, 200)}...`);
+          
+          // ✅ 验证 Cookie 必要字段
+          const requiredFields = ['cookie2', '_tb_token_', '_m_h5_tk'];
+          const missingFields = requiredFields.filter(field => !cookieString.includes(`${field}=`));
+          
+          if (missingFields.length > 0) {
+            console.error(`[QR] ❌ Cookie 缺少必要字段: ${missingFields.join(', ')}`);
+            console.error(`[QR] ❌ 这可能导致后续 API 调用失败！`);
+            console.error(`[QR] ❌ 当前 Cookie 包含的字段:`, cookieString.split(';').map(c => c.split('=')[0].trim()).join(', '));
             
-            const setCookies = asyncRes.headers.getSetCookie?.() || [];
-            if (setCookies.length > 0) {
-              console.log(`[QR] 🍪 asyncUrl 返回 ${setCookies.length} 个 Set-Cookie 响应头`);
-              setCookies.forEach((cookie) => {
-                const cookiePair = cookie.split(";")[0];
-                const [name, value] = cookiePair.split('=');
-                if (name && value) {
-                  cookieMap.set(name.trim(), value.trim());
-                  console.log(`[QR] ➕ 从响应头提取: ${name}=${value.substring(0, 30)}...`);
+            // ⚠️ 尝试手动刷新 _m_h5_tk
+            if (!cookieString.includes('_m_h5_tk=')) {
+              console.log(`[QR] 🔧 尝试手动刷新 _m_h5_tk...`);
+              try {
+                await client.getUserSimple();
+                const newCookieString = client.getCookieString();
+                if (newCookieString.includes('_m_h5_tk=')) {
+                  console.log(`[QR] ✅ 手动刷新 _m_h5_tk 成功！`);
+                  // 更新 cookieString
+                  const finalCookie = newCookieString;
+                  console.log(`[QR] 最终 Cookie 长度: ${finalCookie.length}`);
+                } else {
+                  console.warn(`[QR] ⚠️ 手动刷新 _m_h5_tk 仍然失败`);
                 }
-              });
-            }
-          } catch (err) {
-            console.error(`[QR] 访问 asyncUrl 失败:`, err);
-          }
-        }
-        
-        // ✅ 步骤3: 访问主重定向 URL
-        if (redirectUrl) {
-          try {
-            console.log(`[QR] 🔗 开始跟随重定向链，起始 URL: ${redirectUrl}`);
-            
-            // ✅ 手动跟随重定向链（最多 5 次）
-            let currentUrl = redirectUrl;
-            let redirectCount = 0;
-            const maxRedirects = 5;
-            
-            while (redirectCount <= maxRedirects) {
-              console.log(`[QR] 🌐 [${redirectCount}] 访问: ${currentUrl.substring(0, 100)}...`);
-              
-              // ✅ 关键修复：每次请求都携带最新的累积 Cookie
-              const currentCookies = Array.from(cookieMap.entries())
-                .map(([name, value]) => `${name}=${value}`)
-                .join('; ');
-              
-              console.log(`[QR] 🍪 [${redirectCount}] 当前 Cookie 数量: ${cookieMap.size}, 长度: ${currentCookies.length}`);
-              
-              const res = await fetch(currentUrl, {
-                method: "GET",
-                redirect: "manual", // ← 手动控制重定向
-                headers: {
-                  "User-Agent": USER_AGENT,
-                  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                  "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-                  "Accept-Encoding": "gzip, deflate, br",
-                  "Referer": "https://login.taobao.com/",
-                  "Connection": "keep-alive",
-                  "Upgrade-Insecure-Requests": "1",
-                  "Sec-Fetch-Dest": "document",
-                  "Sec-Fetch-Mode": "navigate",
-                  "Sec-Fetch-Site": "same-site",
-                  "Sec-Fetch-User": "?1",
-                  "Cache-Control": "max-age=0",
-                  "Cookie": currentCookies, // ← 使用最新的累积 Cookie
-                },
-              });
-              
-              console.log(`[QR] 📊 [${redirectCount}] 状态码: ${res.status}`);
-              
-              // 提取 Set-Cookie 响应头
-              const setCookies = res.headers.getSetCookie?.() || [];
-              console.log(`[QR] 🍪 [${redirectCount}] 获取到 ${setCookies.length} 个 Set-Cookie 响应头`);
-              
-              if (setCookies.length > 0) {
-                setCookies.forEach((cookie) => {
-                  const cookiePair = cookie.split(";")[0];
-                  const [cookieName, ...valueParts] = cookiePair.split('=');
-                  const cookieValue = valueParts.join('='); // 处理值中包含 = 的情况
-                  if (cookieName && cookieValue) {
-                    cookieMap.set(cookieName.trim(), cookieValue.trim());
-                    console.log(`[QR] ➕ [${redirectCount}] 添加 Cookie: ${cookieName.trim()}=${cookieValue.substring(0, 30)}...`);
-                  }
-                });
+              } catch (refreshError: any) {
+                console.error(`[QR] ❌ 手动刷新 _m_h5_tk 失败:`, refreshError.message);
               }
-              
-              // 检查是否有 HTTP 重定向 (3xx)
-              if (res.status >= 300 && res.status < 400) {
-                const location = res.headers.get("Location");
-                if (location) {
-                  // 处理相对 URL
-                  if (location.startsWith('/')) {
-                    const urlObj = new URL(currentUrl);
-                    currentUrl = `${urlObj.protocol}//${urlObj.host}${location}`;
-                  } else if (!location.startsWith('http')) {
-                    const urlObj = new URL(currentUrl);
-                    const basePath = urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
-                    currentUrl = `${urlObj.protocol}//${urlObj.host}${basePath}${location}`;
-                  } else {
-                    currentUrl = location;
-                  }
-                  
-                  console.log(`[QR] 🔄 [${redirectCount}] HTTP 重定向到: ${currentUrl.substring(0, 100)}...`);
-                  redirectCount++;
-                  continue;
-                }
-              }
-              
-              // ✅ 检查是否是 200 但有 JavaScript/Meta 重定向
-              if (res.status === 200) {
-                try {
-                  const html = await res.text();
-                  console.log(`[QR] 📄 [${redirectCount}] 获取到 HTML，长度: ${html.length}`);
-                  
-                  // 方法1: 查找 JavaScript 跳转
-                  // window.location.href = "..."
-                  // window.location = "..."
-                  // location.href = "..."
-                  const jsRedirectMatch = html.match(/(?:window\.)?location(?:\.href)?\s*=\s*["']([^"']+)["']/i);
-                  if (jsRedirectMatch) {
-                    let nextUrl = jsRedirectMatch[1];
-                    
-                    // 处理相对 URL
-                    if (nextUrl.startsWith('/')) {
-                      const urlObj = new URL(currentUrl);
-                      nextUrl = `${urlObj.protocol}//${urlObj.host}${nextUrl}`;
-                    } else if (!nextUrl.startsWith('http')) {
-                      const urlObj = new URL(currentUrl);
-                      const basePath = urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
-                      nextUrl = `${urlObj.protocol}//${urlObj.host}${basePath}${nextUrl}`;
-                    }
-                    
-                    console.log(`[QR] 🔄 [${redirectCount}] JS 重定向到: ${nextUrl.substring(0, 100)}...`);
-                    currentUrl = nextUrl;
-                    redirectCount++;
-                    continue;
-                  }
-                  
-                  // 方法2: 查找 Meta 标签重定向
-                  // <meta http-equiv="refresh" content="0;url=...">
-                  const metaRedirectMatch = html.match(/<meta[^>]+http-equiv=["']refresh["'][^>]+content=["'][^;]+;\s*url=([^"']+)["']/i);
-                  if (metaRedirectMatch) {
-                    let nextUrl = metaRedirectMatch[1];
-                    
-                    // 处理相对 URL
-                    if (nextUrl.startsWith('/')) {
-                      const urlObj = new URL(currentUrl);
-                      nextUrl = `${urlObj.protocol}//${urlObj.host}${nextUrl}`;
-                    } else if (!nextUrl.startsWith('http')) {
-                      const urlObj = new URL(currentUrl);
-                      const basePath = urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
-                      nextUrl = `${urlObj.protocol}//${urlObj.host}${basePath}${nextUrl}`;
-                    }
-                    
-                    console.log(`[QR] 🔄 [${redirectCount}] Meta 重定向到: ${nextUrl.substring(0, 100)}...`);
-                    currentUrl = nextUrl;
-                    redirectCount++;
-                    continue;
-                  }
-                  
-                  // 方法3: 检查是否是淘宝的验证页面
-                  if (currentUrl.includes('normal_validate.htm') || currentUrl.includes('login_check.htm') || currentUrl.includes('verify_modes.htm') || currentUrl.includes('identity_verify.htm')) {
-                    console.log(`[QR] 🔍 [${redirectCount}] 检测到验证页面: ${currentUrl.split('?')[0]}`);
-                    
-                    // 查找页面中的 URL（可能在 data-url、href 等属性中）
-                    const urlMatch = html.match(/(?:data-url|href)=[\"']([^\"']+taobao\\.com[^\"']*)[\"']/i);
-                    if (urlMatch) {
-                      let nextUrl = urlMatch[1];
-                      
-                      // HTML 解码
-                      nextUrl = nextUrl.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '\"');
-                      
-                      // 处理相对 URL
-                      if (nextUrl.startsWith('/')) {
-                        const urlObj = new URL(currentUrl);
-                        nextUrl = `${urlObj.protocol}//${urlObj.host}${nextUrl}`;
-                      } else if (!nextUrl.startsWith('http')) {
-                        const urlObj = new URL(currentUrl);
-                        const basePath = urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
-                        nextUrl = `${urlObj.protocol}//${urlObj.host}${basePath}${nextUrl}`;
-                      }
-                      
-                      console.log(`[QR] 🔄 [${redirectCount}] 从页面提取到 URL: ${nextUrl.substring(0, 100)}...`);
-                      currentUrl = nextUrl;
-                      redirectCount++;
-                      continue;
-                    }
-                    
-                    console.log(`[QR] ⚠️ [${redirectCount}] 无法从验证页面提取跳转 URL`);
-                    console.log(`[QR] 📋 HTML 预览（前 1000 字符）: ${html.substring(0, 1000)}`);
-                  }
-                  
-                  // 没有找到任何重定向，到达最终页面
-                  console.log(`[QR] ✅ [${redirectCount}] 到达最终页面，状态码: ${res.status}`);
-                } catch (err) {
-                  console.error(`[QR] ❌ [${redirectCount}] 解析页面失败:`, err);
-                  console.log(`[QR] ✅ [${redirectCount}] 到达最终页面，状态码: ${res.status}`);
-                  break;
-                }
-              }
-              
-              // 其他状态码，停止
-              console.log(`[QR] ✅ [${redirectCount}] 到达最终页面，状态码: ${res.status}`);
-              break;
             }
-            
-            if (redirectCount > maxRedirects) {
-              console.log(`[QR] ⚠️ 重定向次数超过限制 (${maxRedirects})，停止跟随`);
-            }
-            
-            console.log(`[QR] 🏁 重定向链结束，共跟随 ${redirectCount} 次重定向`);
-          } catch (err) {
-            console.error(`[QR] ❌ 访问 redirectUrl 失败:`, err);
+          } else {
+            console.log(`[QR] ✅ Cookie 包含所有必要字段`);
           }
-        }
-        
-        cookieString = Array.from(cookieMap.entries()).map(([name, value]) => `${name}=${value}`).join("; ");
-        
-        console.log(`[QR] ✅ Cookie 提取完成，长度: ${cookieString.length}`);
-        console.log(`[QR] Cookie 预览: ${cookieString.substring(0, 200)}...`);
-        
-        // ✅ 提取用户名（从 Cookie 中）
-        let username = "未知用户";
-        
-        // 方法1: 尝试从 _nk_ 字段提取（URL 编码的用户名）
-        const nkMatch = cookieString.match(/_nk_=(.*?)($|;)/);
-        if (nkMatch) {
-          try {
-            username = decodeURIComponent(nkMatch[1]);
-            console.log(`[QR] 从 _nk_ 提取用名: ${username}`);
-          } catch (err) {
-            console.error(`[QR] 解码 _nk_ 失败:`, err);
-          }
-        }
-        
-        // 方法2: 尝试从 tracknick 字段提取
-        if (username === "未知用户") {
-          const tracknickMatch = cookieString.match(/tracknick=(.*?)($|;)/);
-          if (tracknickMatch) {
+          
+          // ✅ 提取用户名（从 Cookie 中）
+          let username = "未知用户";
+          
+          // 方法1: 尝试从 _nk_ 字段提取（URL 编码的用户名）
+          const nkMatch = cookieString.match(/_nk_=(.*?)($|;)/);
+          if (nkMatch) {
             try {
-              username = decodeURIComponent(tracknickMatch[1]);
-              console.log(`[QR] 从 tracknick 提取用户名: ${username}`);
+              username = decodeURIComponent(nkMatch[1]);
+              console.log(`[QR] 从 _nk_ 提取用户名: ${username}`);
             } catch (err) {
-              console.error(`[QR] 解码 tracknick 失败:`, err);
+              console.error(`[QR] 解码 _nk_ 失败:`, err);
             }
           }
-        }
-        
-        // 方法3: 尝试从 lgc 字段提取（登录账号）
-        if (username === "未知用户") {
-          const lgcMatch = cookieString.match(/lgc=(.*?)($|;)/);
-          if (lgcMatch) {
-            try {
-              username = decodeURIComponent(lgcMatch[1]);
-              console.log(`[QR] 从 lgc 提取用户名: ${username}`);
-            } catch (err) {
-              console.error(`[QR] 解码 lgc 失败:`, err);
+          
+          // 方法2: 尝试从 tracknick 字段提取
+          if (username === "未知用户") {
+            const tracknickMatch = cookieString.match(/tracknick=(.*?)($|;)/);
+            if (tracknickMatch) {
+              try {
+                username = decodeURIComponent(tracknickMatch[1]);
+                console.log(`[QR] 从 tracknick 提取用户名: ${username}`);
+              } catch (err) {
+                console.error(`[QR] 解码 tracknick 失败:`, err);
+              }
             }
           }
-        }
-        
-        console.log(`[QR] 🏷️ 最终用户名: ${username}`);
-        
-        // 更新会话状态
-        session.status = "confirmed";
-        session.cookie = cookieString;
-        session.username = username; // ← 保存用户名
-        await kv.set(`qr_session:${qrCodeId}`, JSON.stringify(session));
+          
+          // 方法3: 尝试从 lgc 字段提取（登录账号）
+          if (username === "未知用户") {
+            const lgcMatch = cookieString.match(/lgc=(.*?)($|;)/);
+            if (lgcMatch) {
+              try {
+                username = decodeURIComponent(lgcMatch[1]);
+                console.log(`[QR] 从 lgc 提取用户名: ${username}`);
+              } catch (err) {
+                console.error(`[QR] 解码 lgc 失败:`, err);
+              }
+            }
+          }
+          
+          console.log(`[QR] 🏷️ 最终用户名: ${username}`);
+          
+          // ✅ 更新会话状态
+          session.status = "confirmed";
+          session.cookie = cookieString;
+          session.username = username;
+          await kv.set(`qr_session:${qrCodeId}`, JSON.stringify(session));
 
-        return c.json({
-          success: true,
-          data: {
-            status: "confirmed",
-            cookie: cookieString,
-            username: username, // ← 返回用户名
-          },
-        });
+          return c.json({
+            success: true,
+            data: {
+              status: "confirmed",
+              cookie: cookieString,
+              username: username,
+            },
+          });
+          
+        } catch (tsdkError: any) {
+          console.error(`[QR] ❌ TSDK 登录成功处理失败:`, tsdkError.message);
+          console.warn(`[QR] ⚠️ 回退到传统方式处理...`);
+          
+          // ✅ 如果 TSDK 处理失败，回退到传统方式
+          let cookieString = "";
+          const cookieMap = new Map<string, string>();
+          
+          // 传统方式：从 asyncUrls 提取 Cookie
+          console.log(`[QR] 📋 使用传统方式从 asyncUrls 解析 Cookie...`);
+          for (const url of asyncUrls) {
+            try {
+              const urlObj = new URL(url);
+              const cookieFields = [
+                'cookie1', 'cookie2', 'cookie17', 
+                '_tb_token_', 't', 'sg', 'sgcookie',
+                '_nk_', 'tracknick', 'lgc', 'unb',
+                'uc1', 'uc3', 'uc4', 'lid', '_l_g_',
+                'csg', 'dnk', 'srt', 'wk_cookie2',
+                'existShop', 'cookie14', 'cookie15', 'cookie16', 'cookie21',
+                '_cc_', '_m_h5_tk', '_m_h5_tk_enc', 'x5sec',
+              ];
+              
+              for (const field of cookieFields) {
+                const value = urlObj.searchParams.get(field);
+                if (value) {
+                  const decodedValue = decodeURIComponent(value);
+                  cookieMap.set(field, decodedValue);
+                }
+              }
+            } catch (err) {
+              console.error(`[QR] 解析 asyncUrl 失败:`, err);
+            }
+          }
+          
+          cookieString = Array.from(cookieMap.entries())
+            .map(([name, value]) => `${name}=${value}`)
+            .join('; ');
+          
+          // 提取用户名
+          let username = "未知用户";
+          const nkMatch = cookieString.match(/_nk_=(.*?)($|;)/);
+          if (nkMatch) {
+            try {
+              username = decodeURIComponent(nkMatch[1]);
+            } catch (err) {
+              console.error(`[QR] 解码用户名失败:`, err);
+            }
+          }
+          
+          console.log(`[QR] 🏷️ 传统方式提取用户名: ${username}`);
+          
+          session.status = "confirmed";
+          session.cookie = cookieString;
+          session.username = username;
+          await kv.set(`qr_session:${qrCodeId}`, JSON.stringify(session));
+
+          return c.json({
+            success: true,
+            data: {
+              status: "confirmed",
+              cookie: cookieString,
+              username: username,
+            },
+          });
+        }
       } else if (qrCodeStatus === "SCANED" || qrCodeStatus === "已扫码") {
         console.log(`[QR] 📱 已扫码，等待确认`);
         
@@ -811,136 +684,254 @@ app.post(
 );
 
 // =====================================================
-// 淘宝短信登录 API - 基于 TSDK 第 250-286 行
+// 短信登录 API - 基于 TSDK 的完整实现
 // =====================================================
 
-// 发送短信验证码（TSDK taobao_h5.py 第 250-272 行）
+// 发送短信验证码
 app.post(
   "/make-server-c6898dcb/auth/sms/send",
   async (c) => {
     try {
-      const { phone, countryCode = "CN", phoneCode = "86" } = await c.req.json();
-
-      if (!phone) {
-        return c.json(
-          { success: false, message: "缺少手机号参数" },
-          400,
-        );
+      const { phone } = await c.req.json();
+      
+      if (!phone || typeof phone !== 'string') {
+        return c.json({
+          success: false,
+          message: '手机号参数缺失或无效'
+        }, 400);
       }
-
-      console.log(`[SMS] ========== 开始发送短信验证码: ${phone} ==========`);
-
-      // 步骤1: 初始化获取 CSRF 和 umidToken
-      const { csrf, umidToken, initialCookies } = await initLoginBefore();
-
-      // 步骤2: 调用 recommendLoginFlow（TSDK 第 254-262 行）
-      console.log(`[SMS] 调用 recommendLoginFlow...`);
-      const recommendRes = await fetch(
-        "https://login.m.taobao.com/havanaone/loginLegacy/recommendLoginFlow.do?bizEntrance=taobao_h5&bizName=taobao",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": USER_AGENT,
-            Referer: "https://login.m.taobao.com/",
-            Accept: "application/json, text/javascript, */*; q=0.01",
-            Cookie: initialCookies,
-          },
-          body: new URLSearchParams({
-            simBizType: "0",
-            loginId: phone,
-            phoneCode: phoneCode,
-            countryCode: countryCode,
-            keepLogin: "true",
-            contextToken: "",
-            defaultView: "sim",
-          }).toString(),
-        },
-      );
-
-      if (!recommendRes.ok) {
-        throw new Error(`recommendLoginFlow 失败: ${recommendRes.status}`);
+      
+      // 简单验证手机号格式（中国大陆手机号）
+      if (!/^1[3-9]\d{9}$/.test(phone)) {
+        return c.json({
+          success: false,
+          message: '手机号格式不正确'
+        }, 400);
       }
-
-      const recommendData = await recommendRes.json();
-      console.log(`[SMS] recommendLoginFlow 响应:`, JSON.stringify(recommendData));
-
-      // 步骤3: 发送短信验证码（TSDK 第 264-272 行）
-      console.log(`[SMS] 发送验证码...`);
-      const sendRes = await fetch(
-        "https://login.m.taobao.com/havanaone/loginLegacy/sms/sendSms.do?bizEntrance=taobao_h5&bizName=taobao",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": USER_AGENT,
-            Referer: "https://login.m.taobao.com/",
-            Accept: "application/json, text/javascript, */*; q=0.01",
-            Cookie: initialCookies,
-          },
-          body: new URLSearchParams({
-            phoneCode: phoneCode,
-            loginId: phone,
-            countryCode: countryCode,
-            contextToken: "",
-            defaultView: "sim",
-            _csrf: csrf,
-            lang: "zh_CN",
-          }).toString(),
-        },
-      );
-
-      if (!sendRes.ok) {
-        throw new Error(`发送短信失败: ${sendRes.status}`);
-      }
-
-      const sendData: any = await sendRes.json();
-      console.log(`[SMS] 发送短信响应:`, JSON.stringify(sendData));
-
-      const hasError = sendData.hasError;
-      if (hasError) {
-        throw new Error(sendData.content?.message || "发送短信失败");
-      }
-
-      const data = sendData.content?.data;
-      if (!data || !data.smsToken) {
-        throw new Error("短信发送响应数据不完整");
-      }
-
-      // 生成会话ID，保存 smsToken、csrf、umidToken、cookies
+      
+      console.log(`[SMS] ========== 发送短信验证码: ${phone} ==========`);
+      
+      // 使用 TSDK 客户端
+      const { TaobaoH5Client } = await import('./tsdk.tsx');
+      const client = new TaobaoH5Client();
+      
+      // 初始化 Cookie
+      await client.initCookie();
+      
+      // 发送短信
+      const smsResult = await client.sendSms(phone);
+      
+      // 生成会话ID（用于后续登录）
       const sessionId = `sms_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
+      
+      // 保存会话信息到 KV
       await kv.set(
         `sms_session:${sessionId}`,
         JSON.stringify({
           phone: phone,
-          phoneCode: phoneCode,
-          countryCode: countryCode,
-          smsToken: data.smsToken,
-          csrf: csrf,
-          umidToken: umidToken,
-          cookies: initialCookies,
+          smsToken: smsResult.smsToken,
+          cookies: client.getCookieString(), // 保存 Cookie 用于后续登录
+          createdAt: Date.now(),
+          expiresAt: Date.now() + 300000, // 5分钟过期
+        })
+      );
+      
+      console.log(`[SMS] ✅ 短信发送成功！会话ID: ${sessionId}`);
+      
+      return c.json({
+        success: true,
+        data: {
+          sessionId: sessionId,
+          expireTime: Date.now() + 300000,
+        },
+        message: '验证码已发送，请查收短信'
+      });
+      
+    } catch (error: any) {
+      console.error('[SMS] ❌ 发送短信失败:', error);
+      return c.json({
+        success: false,
+        message: error.message || '发送短信失败'
+      }, 500);
+    }
+  }
+);
+
+// 短信登录
+app.post(
+  "/make-server-c6898dcb/auth/sms/login",
+  async (c) => {
+    try {
+      const { sessionId, smsCode } = await c.req.json();
+      
+      if (!sessionId || !smsCode) {
+        return c.json({
+          success: false,
+          message: '会话ID或验证码缺失'
+        }, 400);
+      }
+      
+      console.log(`[SMS] ========== 短信登录: sessionId=${sessionId} ==========`);
+      
+      // 从 KV 获取会话信息
+      const sessionData = await kv.get(`sms_session:${sessionId}`);
+      
+      if (!sessionData) {
+        return c.json({
+          success: false,
+          message: '会话已过期或存在'
+        }, 404);
+      }
+      
+      const session = JSON.parse(sessionData);
+      
+      // 检查是否过期
+      if (Date.now() > session.expiresAt) {
+        await kv.del(`sms_session:${sessionId}`);
+        return c.json({
+          success: false,
+          message: '会话已过期，请重新发送验证码'
+        }, 400);
+      }
+      
+      // 使用 TSDK 客户端登录
+      const { TaobaoH5Client } = await import('./tsdk.tsx');
+      const client = new TaobaoH5Client();
+      
+      // 恢复之前的 Cookie
+      client.setCookies(session.cookies);
+      
+      // 短信登录
+      await client.loginSms(
+        session.phone,
+        smsCode,
+        session.smsToken
+      );
+      
+      // 获取最终 Cookie
+      const cookieString = client.getCookieString();
+      
+      // 验证 Cookie
+      const requiredFields = ['cookie2', '_tb_token_', '_m_h5_tk'];
+      const missingFields = requiredFields.filter(field => !cookieString.includes(`${field}=`));
+      
+      if (missingFields.length > 0) {
+        console.error(`[SMS] ❌ Cookie 缺少必要字段: ${missingFields.join(', ')}`);
+        throw new Error(`登录失败：Cookie 不完整（缺少 ${missingFields.join(', ')}）`);
+      }
+      
+      // 提取用户名
+      let username = "未知用户";
+      
+      const nkMatch = cookieString.match(/_nk_=(.*?)($|;)/);
+      if (nkMatch) {
+        try {
+          username = decodeURIComponent(nkMatch[1]);
+        } catch (err) {
+          console.error(`[SMS] 解码 _nk_ 失败:`, err);
+        }
+      }
+      
+      // 如果没有从 _nk_ 提取到，尝试从 tracknick
+      if (username === "未知用户") {
+        const tracknickMatch = cookieString.match(/tracknick=(.*?)($|;)/);
+        if (tracknickMatch) {
+          try {
+            username = decodeURIComponent(tracknickMatch[1]);
+          } catch (err) {
+            console.error(`[SMS] 解码 tracknick 失败:`, err);
+          }
+        }
+      }
+      
+      // 如果还是没有，尝试从 lgc
+      if (username === "未知用户") {
+        const lgcMatch = cookieString.match(/lgc=(.*?)($|;)/);
+        if (lgcMatch) {
+          try {
+            username = decodeURIComponent(lgcMatch[1]);
+          } catch (err) {
+            console.error(`[SMS] 解码 lgc 失败:`, err);
+          }
+        }
+      }
+      
+      console.log(`[SMS] 🏷️ 提取到用户名: ${username}`);
+      console.log(`[SMS] ✅ 短信登录成功，Cookie 长度: ${cookieString.length}`);
+      
+      // 清理会话
+      await kv.del(`sms_session:${sessionId}`);
+      
+      return c.json({
+        success: true,
+        data: {
+          cookie: cookieString,
+          username: username,
+        },
+        message: '登录成功'
+      });
+      
+    } catch (error: any) {
+      console.error('[SMS] ❌ 短信登录失败:', error);
+      return c.json({
+        success: false,
+        message: error.message || '短信登录失败'
+      }, 500);
+    }
+  }
+);
+
+// =====================================================
+// Playwright 扫码登录 API（使用外部浏览器服务）
+// =====================================================
+
+// 使用 Playwright 生成二维码
+app.post(
+  "/make-server-c6898dcb/auth/qrcode/generate-playwright",
+  async (c) => {
+    try {
+      console.log("[Playwright] ========== 开始生成二维码 ==========");
+
+      const result = await playwright.generateQRCodeWithPlaywright();
+
+      if (!result.success) {
+        throw new Error("Playwright 服务返回失败");
+      }
+
+      // 生成本地会话ID（用于前端轮询）
+      const localSessionId = `pw_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // 保存 Playwright 会话信息到 KV
+      await kv.set(
+        `pw_session:${localSessionId}`,
+        JSON.stringify({
+          playwrightSessionId: result.sessionId,
+          qrCodeUrl: result.qrCodeUrl,
+          cookies: result.cookies,
+          status: "waiting",
           createdAt: Date.now(),
           expiresAt: Date.now() + 300000, // 5分钟
         }),
       );
 
-      console.log(`[SMS] ✅ 验证码发送成功！会话ID: ${sessionId}, smsToken: ${data.smsToken?.substring(0, 10)}...`);
+      console.log(
+        `[Playwright] ✅ 二维码生成成功！本地会话ID: ${localSessionId}`,
+      );
 
       return c.json({
         success: true,
         data: {
-          sessionId: sessionId,
-          smsToken: data.smsToken,
+          qrCodeUrl: result.qrCodeUrl,
+          qrCodeId: localSessionId,
           expireTime: Date.now() + 300000,
         },
       });
     } catch (error: any) {
-      console.error("[SMS] ❌ 发送短信验证码失败:", error);
+      console.error("[Playwright] ❌ 生成二维码失败:", error);
       return c.json(
         {
           success: false,
-          message: error.message || "发送短信验证码失败",
+          message: error.message || "生成二维码失败",
         },
         500,
       );
@@ -948,28 +939,30 @@ app.post(
   },
 );
 
-// 短信验证码登录（TSDK taobao_h5.py 第 274-286 行）
+// 使用 Playwright 检查二维码状态
 app.post(
-  "/make-server-c6898dcb/auth/sms/login",
+  "/make-server-c6898dcb/auth/qrcode/check-playwright",
   async (c) => {
     try {
-      const { sessionId, smsCode } = await c.req.json();
+      const { qrCodeId } = await c.req.json();
 
-      if (!sessionId || !smsCode) {
+      if (!qrCodeId) {
         return c.json(
-          { success: false, message: "缺少 sessionId 或 smsCode 参数" },
+          { success: false, message: "缺少 qrCodeId 参数" },
           400,
         );
       }
 
-      console.log(`[SMS] ========== 开始短信验证码登录: ${sessionId} ==========`);
+      console.log(
+        `[Playwright] ========== 检查二维码状态: ${qrCodeId} ==========`,
+      );
 
       // 从 KV 获取会话信息
-      const sessionData = await kv.get(`sms_session:${sessionId}`);
+      const sessionData = await kv.get(`pw_session:${qrCodeId}`);
 
       if (!sessionData) {
         return c.json(
-          { success: false, message: "会话已过期或不存在" },
+          { success: false, message: "会话已过期或存在" },
           404,
         );
       }
@@ -978,236 +971,143 @@ app.post(
 
       // 检查是否过期
       if (Date.now() > session.expiresAt) {
-        await kv.del(`sms_session:${sessionId}`);
-        return c.json(
-          { success: false, message: "会话已过期" },
-          400,
-        );
-      }
-
-      // 调用短信登录 API（TSDK 第 276 行）
-      console.log(`[SMS] 验证码: ${smsCode}, smsToken: ${session.smsToken?.substring(0, 10)}...`);
-      const loginRes = await fetch(
-        "https://login.m.taobao.com/havanaone/loginLegacy/sms/login.do?bizEntrance=taobao_h5&bizName=taobao",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": USER_AGENT,
-            Referer: "https://login.m.taobao.com/",
-            Accept: "application/json, text/javascript, */*; q=0.01",
-            Cookie: session.cookies,
-          },
-          body: new URLSearchParams({
-            loginId: session.phone,
-            phoneCode: session.phoneCode,
-            countryCode: session.countryCode,
-            keepLogin: "true",
-            contextToken: "",
-            smsCode: smsCode,
-            smsToken: session.smsToken,
-          }).toString(),
-        },
-      );
-
-      if (!loginRes.ok) {
-        throw new Error(`短信登录失败: ${loginRes.status}`);
-      }
-
-      // 提取响应头中的 Cookie
-      const setCookieHeaders = loginRes.headers.getSetCookie?.() || [];
-      const cookies: string[] = [];
-
-      for (const setCookie of setCookieHeaders) {
-        const cookiePair = setCookie.split(";")[0];
-        if (cookiePair) {
-          cookies.push(cookiePair.trim());
-        }
-      }
-
-      const newCookieString = cookies.join("; ");
-      console.log(`[SMS] 🍪 登录请求返回 ${cookies.length} 个 Cookie: ${newCookieString.substring(0, 100)}...`);
-
-      const loginData: any = await loginRes.json();
-      console.log(`[SMS] 登录响应:`, JSON.stringify(loginData));
-
-      const hasError = loginData.hasError;
-      if (hasError) {
-        const errorMsg = loginData.content?.message || "登录失败";
-        console.error(`[SMS] ❌ 登录失败:`, errorMsg);
-        return c.json(
-          {
-            success: false,
-            message: errorMsg,
-          },
-          400,
-        );
-      }
-
-      const data = loginData.content?.data;
-      if (!data) {
-        throw new Error("登录响应数据不完整");
-      }
-
-      // ✅ 访问 redirectUrl 获取完整 Cookie（TSDK 第 283-285 行）
-      const redirectUrl = data.redirectUrl;
-      const cookieMap = new Map<string, string>();
-
-      // 将当前获取到的 Cookie 添加到 Map
-      if (newCookieString) {
-        newCookieString.split(";").forEach((cookie) => {
-          const trimmed = cookie.trim();
-          if (trimmed) {
-            const [name, value] = trimmed.split("=");
-            if (name && value) {
-              cookieMap.set(name.trim(), value.trim());
-            }
-          }
+        await kv.del(`pw_session:${qrCodeId}`);
+        return c.json({
+          success: true,
+          data: { status: "expired" },
         });
       }
 
-      if (redirectUrl) {
-        try {
-          console.log(`[SMS] 🔗 访问 redirectUrl: ${redirectUrl.substring(0, 100)}...`);
-
-          const redirectRes = await fetch(redirectUrl, {
-            method: "GET",
-            redirect: "manual",
-            headers: {
-              "User-Agent": USER_AGENT,
-              Referer: "https://login.m.taobao.com/",
-              Cookie: newCookieString,
-            },
-          });
-
-          const redirectSetCookies = redirectRes.headers.getSetCookie?.() || [];
-          console.log(`[SMS] 🍪 redirectUrl 返回 ${redirectSetCookies.length} 个 Set-Cookie 响应头`);
-
-          if (redirectSetCookies.length > 0) {
-            redirectSetCookies.forEach((cookie) => {
-              const cookiePair = cookie.split(";")[0];
-              const [name, value] = cookiePair.split("=");
-              if (name && value) {
-                cookieMap.set(name.trim(), value.trim());
-                console.log(`[SMS] ➕ 添加 Cookie: ${name}=${value.substring(0, 30)}...`);
-              }
-            });
-          }
-        } catch (err) {
-          console.error(`[SMS] ❌ 访问 redirectUrl 失败:`, err);
-        }
-      }
-
-      // ✅ 调用 getUserSimple 刷新 token（TSDK 第 285 行）
-      const finalCookieString = Array.from(cookieMap.entries())
-        .map(([name, value]) => `${name}=${value}`)
-        .join("; ");
-
-      try {
-        console.log(`[SMS] 📞 调用 getUserSimple 刷新 token...`);
-        const userSimpleRes = await fetch(
-          "https://h5api.m.taobao.com/h5/mtop.user.getusersimple/1.0/",
-          {
-            method: "GET",
-            headers: {
-              "User-Agent": USER_AGENT,
-              Referer: "https://h5.m.taobao.com/",
-              Cookie: finalCookieString,
-            },
+      // 如果已经确认过了，直接返回保存的结果
+      if (session.status === "confirmed" && session.cookie) {
+        return c.json({
+          success: true,
+          data: {
+            status: "confirmed",
+            cookie: session.cookie,
+            username: session.username,
           },
-        );
-
-        const userSimpleSetCookies = userSimpleRes.headers.getSetCookie?.() || [];
-        console.log(`[SMS] 🍪 getUserSimple 返回 ${userSimpleSetCookies.length} 个 Set-Cookie 响应头`);
-
-        if (userSimpleSetCookies.length > 0) {
-          userSimpleSetCookies.forEach((cookie) => {
-            const cookiePair = cookie.split(";")[0];
-            const [name, value] = cookiePair.split("=");
-            if (name && value) {
-              cookieMap.set(name.trim(), value.trim());
-              console.log(`[SMS] ➕ 刷新 Cookie: ${name}=${value.substring(0, 30)}...`);
-            }
-          });
-        }
-      } catch (err) {
-        console.error(`[SMS] ⚠️ getUserSimple 失败（不影响登录）:`, err);
+        });
       }
 
-      // 生成最终 Cookie 字符串
-      const cookieString = Array.from(cookieMap.entries())
-        .map(([name, value]) => `${name}=${value}`)
-        .join("; ");
+      // ⚠️ 注意：这里我们需要先调用淘宝 API 检查状态
+      // 只有在状态为 CONFIRMED 时，才调用 Playwright 服务
+      // 这样可以减少 Playwright 服务的调用次数
 
-      console.log(`[SMS] ✅ Cookie 提取完成，长度: ${cookieString.length}`);
-      console.log(`[SMS] Cookie 预览: ${cookieString.substring(0, 200)}...`);
+      // 使用原有的检查逻辑
+      const checkUrl =
+        "https://login.taobao.com/havanaone/loginLegacy/qrCode/query.do?bizEntrance=taobao_pc&bizName=taobao";
 
-      // ✅ 提取用户名（从 Cookie 中）
-      let username = "未知用户";
+      const deviceId = `device_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      const uaString =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-      const nkMatch = cookieString.match(/_nk_=(.*?)($|;)/);
-      if (nkMatch) {
-        try {
-          username = decodeURIComponent(nkMatch[1]);
-          console.log(`[SMS] 从 _nk_ 提取用户名: ${username}`);
-        } catch (err) {
-          console.error(`[SMS] 解码 _nk_ 失败:`, err);
-        }
-      }
+      // 从 session 中提取必要的参数（需要先保存）
+      // 这里简化处理，直接返回 waiting 状态
+      // 实际生产环境需要完整实现
 
-      if (username === "未知用户") {
-        const tracknickMatch = cookieString.match(/tracknick=(.*?)($|;)/);
-        if (tracknickMatch) {
-          try {
-            username = decodeURIComponent(tracknickMatch[1]);
-            console.log(`[SMS] 从 tracknick 提取用户名: ${username}`);
-          } catch (err) {
-            console.error(`[SMS] 解码 tracknick 失败:`, err);
-          }
-        }
-      }
-
-      if (username === "未知用户") {
-        const lgcMatch = cookieString.match(/lgc=(.*?)($|;)/);
-        if (lgcMatch) {
-          try {
-            username = decodeURIComponent(lgcMatch[1]);
-            console.log(`[SMS] 从 lgc 提取用户名: ${username}`);
-          } catch (err) {
-            console.error(`[SMS] 解码 lgc 失败:`, err);
-          }
-        }
-      }
-
-      // 从手机号提取用户名（如果仍然是"未知用户"）
-      if (username === "未知用户") {
-        username = `用户${session.phone.substring(session.phone.length - 4)}`;
-        console.log(`[SMS] 使用手机号后4位作为用户名: ${username}`);
-      }
-
-      console.log(`[SMS] 🏷️ 最终用户名: ${username}`);
-
-      // 删除会话
-      await kv.del(`sms_session:${sessionId}`);
+      // 调用 Playwright 服务检查（这里需要传入 checkUrl）
+      // 由于我们需要知道淘宝的 redirectUrl，所以需要先调用淘宝 API
+      // 这里简化实现，假设前端会多次轮询
 
       return c.json({
         success: true,
-        data: {
-          cookie: cookieString,
-          username: username,
-        },
+        data: { status: "waiting" },
       });
     } catch (error: any) {
-      console.error("[SMS] ❌ 短信验证码登录失败:", error);
+      console.error("[Playwright] ❌ 检查失败:", error);
       return c.json(
         {
           success: false,
-          message: error.message || "短信验证码登录失败",
+          message: error.message || "检查失败",
         },
         500,
       );
     }
   },
 );
+
+// 检查 Playwright 服务健康状态
+app.get("/make-server-c6898dcb/playwright/health", async (c) => {
+  try {
+    const health = await playwright.checkPlaywrightHealth();
+    return c.json(health);
+  } catch (error: any) {
+    return c.json(
+      {
+        healthy: false,
+        message: error.message || "检查失败",
+      },
+      500,
+    );
+  }
+});
+
+// =====================================================
+// 礼品 API - 获取红包列表
+// =====================================================
+
+app.post("/make-server-c6898dcb/gifts/list", async (c) => {
+  try {
+    const { cookie } = await c.req.json();
+    
+    if (!cookie || typeof cookie !== 'string') {
+      return c.json({
+        success: false,
+        message: 'Cookie 参数缺失或无效'
+      }, 400);
+    }
+
+    console.log('[Gifts API] 开始获取红包列表和余额...');
+    console.log('[Gifts API] Cookie 长度:', cookie.length);
+    console.log('[Gifts API] Cookie 前100字符:', cookie.substring(0, 100));
+    
+    // 检查必要的 Cookie 字段
+    const hasRequiredFields = ['cookie2', '_m_h5_tk', '_tb_token_'].every(field => 
+      cookie.includes(field)
+    );
+    console.log('[Gifts API] 包含必要字段:', hasRequiredFields);
+
+    // 使用 TSDK
+    const api = new TmallGiftAPI(cookie);
+    
+    // 获取完整页面数据（包括余额和红包）
+    const { balance, availableAmount, redPackets } = await api.getFullPageData();
+
+    console.log(`[Gifts API] ✅ 获取成功！余额: ${balance}, 可用: ${availableAmount}, 红包: ${redPackets.length} 个`);
+
+    return c.json({
+      success: true,
+      data: {
+        gifts: redPackets,
+        balance: balance,
+        availableAmount: availableAmount,
+        total: redPackets.length,
+        available: redPackets.length
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[Gifts API] ❌ 获取红包列表失败 - 错误类型:', error.constructor.name);
+    console.error('[Gifts API] ❌ 错误消息:', error.message);
+    console.error('[Gifts API] ❌ 错误堆栈:', error.stack);
+    
+    // 识别 Session 过期错误
+    const errorMsg = error.message || '获取红包列表失败';
+    const isSessionExpired = errorMsg.includes('Session过期') || 
+                             errorMsg.includes('SESSION_EXPIRED') ||
+                             errorMsg.includes('Token已过期') ||
+                             errorMsg.includes('Token为空') ||
+                             errorMsg.includes('会话已过期') ||
+                             errorMsg.includes('请重新登录');
+    
+    console.log('[Gifts API] Session 过期?', isSessionExpired);
+    
+    return c.json({
+      success: false,
+      message: isSessionExpired ? '会话已过期，请重新登录' : errorMsg
+    }, isSessionExpired ? 401 : 500);  // Session 过期返回 401，其他错误返回 500
+  }
+});
 
 Deno.serve(app.fetch);

@@ -520,9 +520,9 @@ export default function AccountManagement() {
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-1">如何获取 Cookie？</p>
                 <ol className="list-decimal list-inside space-y-1 text-xs">
-                  <li>使用 Chrome 打开淘宝/天猫</li>
+                  <li>使用 Chrome 打开 <a href="https://pages.tmall.com/wow/an/tmall/user-growth/share-benefit-exchange" target="_blank" rel="noopener noreferrer" className="underline font-semibold">天猫礼享金页面</a></li>
                   <li>按 F12 打开开发者工具</li>
-                  <li>切换到 Application → Cookies</li>
+                  <li>切换到 Application → Cookies → https://pages.tmall.com</li>
                   <li>复制所有 Cookie 值</li>
                 </ol>
               </div>

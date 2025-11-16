@@ -51,6 +51,7 @@ export interface Account {
   name: string;
   cookie: string;
   is_active: boolean;
+  is_cookie_expired?: boolean;  // Cookie 是否过期（前端检测）
   created_at: string;
   updated_at: string;
 }

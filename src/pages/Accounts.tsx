@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { accountService } from '../lib/api-services';
 import type { Account } from '../lib/types';
+import { validateCookie, extractNickFromCookie } from '../lib/tsdk';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -104,6 +105,8 @@ export default function Accounts() {
         accountCount: result.length
       });
 
+      // 直接设置账号列表，不进行 Cookie 静态验证
+      // Cookie 是否有效会在实际使用时（调用 API）自动检测
       setAccounts(result);
     } catch (error: any) {
       const errorId = generateErrorId();
@@ -155,7 +158,7 @@ export default function Accounts() {
       name: account.name,
       cookie: account.cookie,
     });
-    setLoginMethod('manual'); // 编辑时默认手动输入
+    setLoginMethod('qrcode'); // ✅ 编辑时也默认扫码，方便更新 Cookie
     setIsDialogOpen(true);
   };
 
@@ -173,14 +176,23 @@ export default function Accounts() {
 
   const handleSave = async () => {
     // 验证
-    if (!formData.name.trim()) {
-      toast.error('请输入账号名称');
-      return;
-    }
-
     if (!formData.cookie.trim()) {
       toast.error('请输入 Cookie');
       return;
+    }
+
+    // ✅ 自动从 Cookie 中提取用户名
+    let accountName = formData.name.trim();
+    if (!accountName) {
+      accountName = extractNickFromCookie(formData.cookie);
+      if (!accountName || accountName === '未知用户') {
+        // 如果无法提取用户名，使用默认名称
+        accountName = `账号_${new Date().getTime().toString().slice(-6)}`;
+        logWarning('无法从 Cookie 提取用户名，使用默认名称', {
+          operation: 'save_account',
+          defaultName: accountName
+        });
+      }
     }
 
     setIsSaving(true);
@@ -188,31 +200,31 @@ export default function Accounts() {
       logInfo(`开始${editingAccount ? '更新' : '创建'}账号`, {
         operation: editingAccount ? 'update_account' : 'create_account',
         accountId: editingAccount?.id,
-        accountName: formData.name,
+        accountName: accountName,
         timestamp: new Date().toISOString()
       });
 
       if (editingAccount) {
         // 更新
-        await accountService.update(editingAccount.id, formData.name, formData.cookie);
+        await accountService.update(editingAccount.id, accountName, formData.cookie);
         
         logInfo('账号更新成功', {
           operation: 'update_account',
           accountId: editingAccount.id,
-          accountName: formData.name
+          accountName: accountName
         });
 
         toast.success('账号更新成功');
       } else {
         // 创建
-        await accountService.create(formData.name, formData.cookie);
+        await accountService.create(accountName, formData.cookie);
         
         logInfo('账号创建成功', {
           operation: 'create_account',
-          accountName: formData.name
+          accountName: accountName
         });
 
-        toast.success('账号添加成功');
+        toast.success(`账号添加成功：${accountName}`);
       }
 
       setIsDialogOpen(false);
@@ -223,7 +235,7 @@ export default function Accounts() {
       logError(error, {
         operation: editingAccount ? 'update_account' : 'create_account',
         accountId: editingAccount?.id,
-        accountName: formData.name,
+        accountName: accountName,
         component: 'Accounts',
         errorId,
         timestamp: new Date().toISOString()
@@ -343,7 +355,7 @@ export default function Accounts() {
       setFormData(prev => ({ ...prev, cookie: text }));
       
       // ✅ 自动提取用户名
-      const username = extractUsernameFromCookie(text);
+      const username = extractNickFromCookie(text);
       if (username && username !== '未知用户') {
         setFormData(prev => ({ ...prev, name: username, cookie: text }));
         toast.success(`Cookie 已粘贴，检测到用户名：${username}`);
@@ -352,61 +364,6 @@ export default function Accounts() {
       }
     } catch (error) {
       toast.error('粘贴失败，请手动复制');
-    }
-  };
-
-  // ✅ 从 Cookie 中提取用户名
-  const extractUsernameFromCookie = (cookieString: string): string => {
-    if (!cookieString) return '未知用户';
-    
-    try {
-      // 方法1: 尝试从 _nk_ 字段提取（URL 编码的用户名）
-      const nkMatch = cookieString.match(/_nk_=([^;]+)/);
-      if (nkMatch) {
-        try {
-          const username = decodeURIComponent(nkMatch[1]);
-          if (username) {
-            console.log(`[前端] 从 _nk_ 提取用户名: ${username}`);
-            return username;
-          }
-        } catch (err) {
-          console.error(`[前端] 解码 _nk_ 失败:`, err);
-        }
-      }
-      
-      // 方法2: 尝试从 tracknick 字段提取
-      const tracknickMatch = cookieString.match(/tracknick=([^;]+)/);
-      if (tracknickMatch) {
-        try {
-          const username = decodeURIComponent(tracknickMatch[1]);
-          if (username) {
-            console.log(`[前端] 从 tracknick 提取用户名: ${username}`);
-            return username;
-          }
-        } catch (err) {
-          console.error(`[前端] 解码 tracknick 失败:`, err);
-        }
-      }
-      
-      // 方法3: 尝试从 lgc 字段提取（登录账号）
-      const lgcMatch = cookieString.match(/lgc=([^;]+)/);
-      if (lgcMatch) {
-        try {
-          const username = decodeURIComponent(lgcMatch[1]);
-          if (username) {
-            console.log(`[前端] 从 lgc 提取用户名: ${username}`);
-            return username;
-          }
-        } catch (err) {
-          console.error(`[前端] 解码 lgc 失败:`, err);
-        }
-      }
-      
-      console.log(`[前端] 未能从 Cookie 中提取用户名`);
-      return '未知用户';
-    } catch (error) {
-      console.error(`[前端] 提取用户名失败:`, error);
-      return '未知用户';
     }
   };
   
@@ -501,7 +458,7 @@ export default function Accounts() {
         throw new Error(data.message || '登录失败');
       }
       
-      // ✅ 登录成功，填充表单
+      // ✅ 登录成，填充表单
       setFormData(prev => ({
         ...prev,
         cookie: data.data.cookie,
@@ -594,14 +551,10 @@ export default function Accounts() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      account.is_active 
-                        ? 'bg-green-100' 
-                        : 'bg-gray-100'
+                      account.is_active ? 'bg-green-100' : 'bg-gray-100'
                     }`}>
                       <User className={`w-5 h-5 ${
-                        account.is_active 
-                          ? 'text-green-600' 
-                          : 'text-gray-400'
+                        account.is_active ? 'text-green-600' : 'text-gray-400'
                       }`} />
                     </div>
                     <div>
@@ -676,7 +629,7 @@ export default function Accounts() {
 
       {/* 添加/编辑对话框 */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingAccount ? '编辑账号' : '添加账号'}
@@ -690,7 +643,7 @@ export default function Accounts() {
           
           <Tabs value={loginMethod} onValueChange={(v) => setLoginMethod(v as 'qrcode' | 'manual' | 'sms')}>
             <TabsList className="grid w-full grid-cols-3"> {/* ← 改为 3 列 */}
-              <TabsTrigger value="qrcode" disabled={!!editingAccount}>
+              <TabsTrigger value="qrcode">
                 <QrCode className="w-4 h-4 mr-2" />
                 扫码登录
               </TabsTrigger>
@@ -706,10 +659,12 @@ export default function Accounts() {
 
             {/* 扫码登录标签页 */}
             <TabsContent value="qrcode" className="space-y-4">
-              {/* 二维码登录组件 */}
-              <div className="border rounded-lg p-4 bg-gray-50">
-                <QRCodeLogin onSuccess={handleQRCodeSuccess} />
-              </div>
+              {/* 二维码登录组件 - 只在当前标签页激活时渲染 */}
+              {loginMethod === 'qrcode' && (
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <QRCodeLogin onSuccess={handleQRCodeSuccess} />
+                </div>
+              )}
 
               {formData.cookie && formData.name && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -740,20 +695,26 @@ export default function Accounts() {
                   <div className="flex-1">
                     <p className="font-bold text-orange-900 mb-1">💡 推荐使用此方法！</p>
                     <p className="text-sm text-orange-800">
-                      在浏览器中登录后复制 Cookie，可以 <strong>100% 避免风控问题</strong>，且操作简单快捷。
+                      在浏览器中登录后复制 Cookie，可以 <strong>100% 避免风控问题</strong>，且操作简单快捷。系统会自动从 Cookie 中提取账号名称。
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">账号名称</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="例如：主账号、小号1"
-                />
-              </div>
+              {/* ✅ 显示自动提取的用户名 */}
+              {formData.name && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-green-800">
+                      <p className="font-medium mb-1">✅ 已识别账号名称</p>
+                      <p className="text-xs">
+                        检测到用户名：<span className="font-semibold">{formData.name}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -773,36 +734,53 @@ export default function Accounts() {
                   onChange={(e) => setFormData(prev => ({ ...prev, cookie: e.target.value }))}
                   placeholder="cookie2=xxx; _m_h5_tk=xxx; _tb_token_=xxx; ..."
                   rows={6}
-                  className="font-mono text-xs"
+                  className="font-mono text-xs break-all whitespace-pre-wrap"
                 />
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start space-x-2">
-                <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-800 space-y-2">
-                  <p className="font-medium">💡 如何获取 Cookie（推荐方法）</p>
-                  <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>打开浏览器，访问 <a href="https://www.taobao.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">https://www.taobao.com</a></li>
-                    <li>使用您的淘宝账号登录（扫码或密码登录均可）</li>
-                    <li>登录成功后，按 <kbd className="px-1 py-0.5 bg-white border rounded text-xs">F12</kbd> 打开开发者工具</li>
-                    <li>点击顶部的 <strong>"Application"</strong> 或 <strong>"应用程序"</strong> 标签</li>
-                    <li>左侧菜单找到 <strong>"Cookies"</strong> → <strong>"https://www.taobao.com"</strong></li>
-                    <li>按 <kbd className="px-1 py-0.5 bg-white border rounded text-xs">Ctrl+A</kbd> 全选所有 Cookie，右键复制</li>
-                    <li>点击上方的"粘贴"按钮，或按 <kbd className="px-1 py-0.5 bg-white border rounded text-xs">Ctrl+V</kbd> 粘贴</li>
-                  </ol>
-                  <div className="mt-3 p-2 bg-white rounded border border-blue-300">
-                    <p className="text-xs font-semibold mb-1">🎯 必需的关键 Cookie：</p>
-                    <ul className="text-xs space-y-0.5 text-blue-700">
-                      <li>• <code className="bg-blue-100 px-1 rounded">cookie2</code> - 登录凭证</li>
-                      <li>• <code className="bg-blue-100 px-1 rounded">t</code> - 用户令牌</li>
-                      <li>• <code className="bg-blue-100 px-1 rounded">_tb_token_</code> - 防伪令牌</li>
-                      <li>• <code className="bg-blue-100 px-1 rounded">_nk_</code> - 用户名（用于自动识别账号）</li>
-                    </ul>
-                  </div>
-                  <p className="text-xs mt-2 font-semibold text-green-700">
-                    ✅ 系统会自动检测用户名并加密存储 Cookie，确保账号安全
-                  </p>
+              {/* 获取 Cookie 帮助信息 */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <p className="font-medium text-blue-900">💡 如何获取 Cookie</p>
                 </div>
+                
+                <ol className="list-decimal list-inside space-y-1.5 text-sm text-blue-800 mb-3">
+                  <li>打开浏览器，访问 <a href="https://pages.tmall.com/wow/an/tmall/user-growth/share-benefit-exchange" target="_blank" rel="noopener noreferrer" className="underline font-semibold">天猫礼享金页面</a></li>
+                  <li>使用您的淘宝账号登录（扫码或密码登录均可）</li>
+                  <li>登录成功后，按 <kbd className="px-1.5 py-0.5 bg-white border rounded text-xs font-mono">F12</kbd> 打开开发者工具</li>
+                  <li>点击顶部的 <strong>"Application"</strong> 或 <strong>"应用程序"</strong> 标签</li>
+                  <li>左侧菜单找到 <strong>"Cookies"</strong> → <strong>"https://pages.tmall.com"</strong></li>
+                  <li>在控制台（Console）中粘贴运行：<code className="bg-white px-1.5 py-0.5 rounded font-mono text-xs">copy(document.cookie)</code></li>
+                  <li>Cookie 已复制到剪贴板，点击上方的"粘贴"按钮即可</li>
+                </ol>
+
+                <div className="bg-white rounded-lg border border-blue-300 p-3">
+                  <p className="text-sm font-semibold mb-2 text-blue-900">🎯 必需的关键 Cookie：</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-blue-700">
+                    <div className="flex items-center space-x-1">
+                      <code className="bg-blue-100 px-1.5 py-0.5 rounded font-mono">cookie2</code>
+                      <span>登录凭证</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <code className="bg-blue-100 px-1.5 py-0.5 rounded font-mono">t</code>
+                      <span>用户令牌</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <code className="bg-blue-100 px-1.5 py-0.5 rounded font-mono">_tb_token_</code>
+                      <span>防伪令牌</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <code className="bg-blue-100 px-1.5 py-0.5 rounded font-mono">_nk_</code>
+                      <span>用户名</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs mt-3 font-semibold text-green-700 flex items-center space-x-1">
+                  <span>✅</span>
+                  <span>系统会自动检测用户名并加密存储 Cookie，确保账号安全</span>
+                </p>
               </div>
             </TabsContent>
 
@@ -836,7 +814,7 @@ export default function Accounts() {
                           {smsCountdown}秒后重试
                         </>
                       ) : (
-                        '发送验证码'
+                        '送验证码'
                       )}
                     </Button>
                   </div>
