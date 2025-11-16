@@ -44,7 +44,8 @@ import {
   RefreshCw,
   Copy,
   QrCode,
-  Keyboard
+  Keyboard,
+  Smartphone // 添加手机图标
 } from 'lucide-react';
 import {
   logError,
@@ -64,12 +65,20 @@ export default function Accounts() {
   // 添加/编辑对话框状态
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
-  const [loginMethod, setLoginMethod] = useState<'qrcode' | 'manual'>('qrcode');
+  const [loginMethod, setLoginMethod] = useState<'qrcode' | 'manual' | 'sms'>('qrcode'); // ← 添加 'sms'
   const [formData, setFormData] = useState({
     name: '',
     cookie: '',
   });
   const [isSaving, setIsSaving] = useState(false);
+  
+  // 短信登录状态
+  const [smsPhone, setSmsPhone] = useState('');
+  const [smsCode, setSmsCode] = useState('');
+  const [smsSessionId, setSmsSessionId] = useState('');
+  const [smsSending, setSmsSending] = useState(false);
+  const [smsCountdown, setSmsCountdown] = useState(0);
+  const [smsLoggingIn, setSmsLoggingIn] = useState(false);
 
   // 删除确认对话框
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -400,6 +409,120 @@ export default function Accounts() {
       return '未知用户';
     }
   };
+  
+  // 🆕 发送短信验证码
+  const handleSendSmsCode = async () => {
+    if (!smsPhone.trim()) {
+      toast.error('请输入手机号');
+      return;
+    }
+    
+    // 简单验证手机号格式
+    if (!/^1[3-9]\d{9}$/.test(smsPhone.trim())) {
+      toast.error('请输入有效的11位手机号');
+      return;
+    }
+    
+    setSmsSending(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/make-server-c6898dcb/auth/sms/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          phone: smsPhone.trim(),
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '发送验证码失败');
+      }
+      
+      setSmsSessionId(data.data.sessionId);
+      toast.success('验证码已发送，请查收短信');
+      
+      // 启动倒计时
+      setSmsCountdown(60);
+      const timer = setInterval(() => {
+        setSmsCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error: any) {
+      console.error('[SMS] 发送验证码失败:', error);
+      toast.error(error.message || '发送验证码失败，请重试');
+    } finally {
+      setSmsSending(false);
+    }
+  };
+  
+  // 🆕 短信验证码登录
+  const handleSmsLogin = async () => {
+    if (!smsPhone.trim()) {
+      toast.error('请输入手机号');
+      return;
+    }
+    
+    if (!smsCode.trim()) {
+      toast.error('请输入验证码');
+      return;
+    }
+    
+    if (!smsSessionId) {
+      toast.error('请先发送验证码');
+      return;
+    }
+    
+    setSmsLoggingIn(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/make-server-c6898dcb/auth/sms/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          sessionId: smsSessionId,
+          smsCode: smsCode.trim(),
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '登录失败');
+      }
+      
+      // ✅ 登录成功，填充表单
+      setFormData(prev => ({
+        ...prev,
+        cookie: data.data.cookie,
+        name: data.data.username,
+      }));
+      
+      toast.success(`登录成功！已获取账号：${data.data.username}`, {
+        duration: 3000,
+      });
+      
+      // 清空短信表单
+      setSmsPhone('');
+      setSmsCode('');
+      setSmsSessionId('');
+    } catch (error: any) {
+      console.error('[SMS] 登录失败:', error);
+      toast.error(error.message || '登录失败，请检查验证码');
+    } finally {
+      setSmsLoggingIn(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -565,8 +688,8 @@ export default function Accounts() {
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs value={loginMethod} onValueChange={(v) => setLoginMethod(v as 'qrcode' | 'manual')}>
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs value={loginMethod} onValueChange={(v) => setLoginMethod(v as 'qrcode' | 'manual' | 'sms')}>
+            <TabsList className="grid w-full grid-cols-3"> {/* ← 改为 3 列 */}
               <TabsTrigger value="qrcode" disabled={!!editingAccount}>
                 <QrCode className="w-4 h-4 mr-2" />
                 扫码登录
@@ -574,6 +697,10 @@ export default function Accounts() {
               <TabsTrigger value="manual">
                 <Keyboard className="w-4 h-4 mr-2" />
                 手动输入
+              </TabsTrigger>
+              <TabsTrigger value="sms" disabled={!!editingAccount}>
+                <Smartphone className="w-4 h-4 mr-2" />
+                短信登录
               </TabsTrigger>
             </TabsList>
 
@@ -677,6 +804,82 @@ export default function Accounts() {
                   </p>
                 </div>
               </div>
+            </TabsContent>
+
+            {/* 短信登录标签页 */}
+            <TabsContent value="sms" className="space-y-4">
+              {/* 短信登录组件 */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">手机号</label>
+                  <Input
+                    value={smsPhone}
+                    onChange={(e) => setSmsPhone(e.target.value)}
+                    placeholder="请输入您的手机号"
+                    type="tel"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">验证码</label>
+                    <Button
+                      onClick={handleSendSmsCode}
+                      variant="ghost"
+                      size="sm"
+                      type="button"
+                      disabled={smsSending || smsCountdown > 0}
+                    >
+                      {smsCountdown > 0 ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          {smsCountdown}秒后重试
+                        </>
+                      ) : (
+                        '发送验证码'
+                      )}
+                    </Button>
+                  </div>
+                  <Input
+                    value={smsCode}
+                    onChange={(e) => setSmsCode(e.target.value)}
+                    placeholder="请输入验证码"
+                    type="text"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleSmsLogin}
+                  disabled={smsLoggingIn}
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                >
+                  {smsLoggingIn ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      登录中...
+                    </>
+                  ) : (
+                    '登录'
+                  )}
+                </Button>
+              </div>
+
+              {formData.cookie && formData.name && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-green-800">
+                      <p className="font-medium mb-1">✅ 登录成功</p>
+                      <p className="text-xs">
+                        账号名称：<span className="font-semibold">{formData.name}</span>
+                      </p>
+                      <p className="text-xs mt-1">
+                        Cookie 已获取，点击保存按钮完成添加
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
 
